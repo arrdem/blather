@@ -5,4 +5,9 @@
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [instaparse "1.4.8"]
-                 [me.arrdem/guten-tag "LATEST"]])
+                 [me.arrdem/guten-tag "LATEST"]]
+  :source-paths ["src/main/clj"]
+  :resource-paths ["src/main/resources"]
+  :test-paths ["src/test/clj"]
+  :profiles {:dev {:source-paths   ["src/dev/clj"]
+                   :resource-paths ["src/dev/resources"]}})
