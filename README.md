@@ -27,12 +27,14 @@ Blather provides a toolkit for writing precisely such transformations.
 
 ## Grammar support
 
+- [ ] BNF 60 - OG BNF from the ALGOL 60 report (1960)
 - [X] [RFC 5234](https://tools.ietf.org/html/rfc5234) -  Augmented BNF for Syntax Specifications: ABNF (2008)
 - [ ] [Lark](https://github.com/erezsh/lark/blob/master/docs/reference.md) - Lark's dialect of BNF
 - [ ] [Instaparse ABNF](https://github.com/Engelberg/instaparse/blob/master/src/instaparse/abnf.cljc) - Instaparse's ABNF dialect
 - [ ] [RFC 822](https://tools.ietf.org/html/rfc822) - STANDARD FOR THE FORMAT OF ARPA INTERNET TEXT MESSAGES (1982)
 - [ ] [RFC 5511](https://tools.ietf.org/html/rfc5511) - Routing Backus-Naur Form: RBNF (2009)
 - [ ] [TBNF](https://dl.acm.org/citation.cfm?id=1147218) - A Translational BNF Grammar Notation: TBNF (2006) (low priority)
+- [ ] [WSN](https://dl.acm.org/citation.cfm?doid=359863.359883) - What can we do about the unnecessary diversity of notation for syntactic definitions?: WSN (1977)
 
 ## License
 
