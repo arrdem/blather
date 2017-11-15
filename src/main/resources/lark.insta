@@ -1,8 +1,8 @@
-(* An Instaparse grammar for Lark gramars as documented here 
+(* An Instaparse grammar for Lark gramars as documented here
 
    https://github.com/erezsh/lark/blob/master/docs/reference.md
 
-	 Modified from the RFC 5234 grammar to preserve the maximum of naming
+   Modified from the RFC 5234 grammar to preserve the maximum of naming
  *)
 
 grammar = ( rule | pragma | <c-nl> ) *
