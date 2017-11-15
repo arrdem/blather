@@ -1,5 +1,7 @@
 (ns me.arrdem.blather.rfc5234
-  "A Blather dialect for ABNF as specified in RFC5234."
+  "A Blather dialect for ABNF as specified in RFC5234.
+
+  RFC7405 updates RFC5234 adding explicit support for case-sensitivity."
   (:require [instaparse.core :refer [parser transform]]
             [clojure.java.io :refer [resource]]))
 
