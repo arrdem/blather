@@ -7,6 +7,7 @@
   "The Instaparse parser used to read RFC5234."
   (parser (slurp (resource "rfc5234.insta"))
           :start :rulelist
+          :string-ci true
           :auto-whitespace :standard))
 
 (def -transformer
