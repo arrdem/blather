@@ -1,5 +1,10 @@
-; Modified from https://tools.ietf.org/html/rfc5234
-; AKA https://www.ietf.org/rfc/rfc5234.txt
+; rfc5234 grammar specification in rfc5234
+;
+; Source documents:
+;   text/html: https://tools.ietf.org/html/rfc5234
+;   text/plain: https://www.ietf.org/rfc/rfc5234.txt
+;
+; All comments and productions preserved, whether used or not.
 
 rulelist       =  1*( rule / (*c-wsp c-nl) )
 
