@@ -4,13 +4,19 @@
             [clojure.java.io :refer [resource]]))
 
 (def -parser
+  "The Instaparse parser used to read RFC5234."
   (parser (slurp (resource "rfc5234.insta"))
           :start :rulelist
           :auto-whitespace :standard))
 
 (def -transformer
-  {:CRLF (fn [& _] nil)})
+  "Map from node IDs to node transformer functions.
 
-(defn parse [text-or-resource]
+  Note that nodes cannot be deleted by returning nil when transforming them."
+  {})
+
+(defn parse
+  "Consumes a resource, parsing it as a RFC5234 structured text, and generating an analyzed FSM"
+  [text-or-resource]
   (->> (-parser text-or-resource)
        (transform -transformer)))
