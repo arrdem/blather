@@ -1,0 +1,96 @@
+(*
+   An instaparse grammar parsing rfc5234 grammars.
+
+    Modified from https://tools.ietf.org/html/rfc5234
+    AKA https://www.ietf.org/rfc/rfc5234.txt
+*)
+
+rulelist =  ( rule | c-nl ) *
+
+rule =  rulename defined-as elements c-nl
+(* continues if next line starts with white space *)
+
+rulename =  #"[a-zA-Z][a-zA-Z0-9\-]*"
+
+defined-as =  ( "=" | "=/" )
+(* basic rules definition and incremental alternatives *)
+
+elements =  alternation
+
+(* c-wsp =  WSP | ( c-nl WSP )
+
+   is dead and was removed
+ *)
+
+c-nl =  comment | CRLF
+(* comment or newline *)
+
+comment =  #";[^\n\r]*" CRLF 
+
+alternation =  concatenation ( "/" concatenation ) *
+
+concatenation =  repetition +
+
+repetition =  repeat ? element
+
+repeat = DIGIT ? "*"
+
+element =  rulename | group | option | char-val | num-val | prose-val
+
+group =  "(" alternation ")"
+
+option =  "[" alternation "]"
+
+char-val =  #"\"[^\"]*\""
+(* originally DQUOTE (%x20-21 | %x23-7E)+ DQUOTE
+   quoted string of SP and VCHAR without DQUOTE
+
+   Note that this is actually more permissive WRT unicode.
+*)
+
+num-val =  "%" ( bin-val | dec-val | hex-val )
+
+bin-val =  #"b[0-1]+((\.[0-1]+)|(-[01]+))?"
+(* series of concatenated bit values or single ONEOF range *)
+
+dec-val =  #"d[0-9]+((\.[0-9]+)|(-[0-9]+))?"
+
+hex-val =  #"x[0-9A-F]+((\.[0-9A-F]+)|(-[0-9A-F]+))?"
+
+prose-val =  #"<[^>]*>"
+(* bracketed string of SP and VCHAR without angles prose description, to be used as last resort *)
+
+CR =  "\r"
+(* carriage return *)
+
+CRLF =  CR ? LF
+(* Internet standard newline
+   NOTE: Originally the CR was required. I made it optional to support Unix encoded files.
+*)
+
+DIGIT =  #"[0-9]+"
+(* 0-9 *)
+
+LF =  "\n"
+(* linefeed *)
+
+(* LWSP =  ( WSP | CRLF WSP ) *
+
+   Dead terminal and removed due to referencing removed WSP
+
+   Use of this linear-white-space rule
+   permits lines containing only white
+   space that are no longer legal in
+   mail headers and have caused
+   interoperability problems in other
+   contexts.
+
+   Do not use when defining mail
+   headers and use with caution in
+   other contexts.
+*)
+
+OCTET =  #"[\x00-\xFF]"
+(* 8 bits of data *)
+
+SP =  " "
