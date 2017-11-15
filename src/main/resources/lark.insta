@@ -1,0 +1,63 @@
+(* An Instaparse grammar for Lark gramars as documented here 
+
+   https://github.com/erezsh/lark/blob/master/docs/reference.md
+
+	 Modified from the RFC 5234 grammar to preserve the maximum of naming
+ *)
+
+grammar = ( rule | pragma | <c-nl> ) *
+
+c-nl = comment | <CRLF>
+
+comment = #"^//[^\n\r]*" <CRLF>
+
+rule = rulename <":"> elements
+
+pragma = import | ignore
+(* Lark has "pragmas", which are directives to the grammar compiler *)
+
+import = "%import" symbol alias ?
+ignore = "%ignore" terminal
+
+rulename = <"?"> symbol
+
+symbol = #"[a-zA-Z_][a-zA-Z0-9\-_\\.]*"
+
+elements = alternation
+
+alternation = concatenation ( <CRLF> * <"|"> alternation ) ?
+
+concatenation = repetition + alias ?
+
+alias = <"->"> symbol
+(* Aliases may be used to assign names in the grammar compiler to various entities *)
+
+repetition = element repeat ?
+
+repeat = zero-or-more | one-or-more
+
+zero-or-more = "*"
+
+one-or-more = "+"
+
+element = group | option | terminal
+
+terminal = symbol | char-val | re-pattern
+
+group = "(" alternation ")"
+
+option = <"["> alternation <"]"> | alternation "?"
+
+char-val = #"\"([^\"]|\\\")*\""
+
+re-pattern = #"/([^\\]|\\\\)*/"
+(* Lark uses almost C# style regexes *)
+
+CR = "\r"
+(* carriage return *)
+
+LF = "\n"
+(* linefeed *)
+
+CRLF = CR ? LF
+(* Guarding against Windows and Unix file encodings *)
