@@ -1,0 +1,11 @@
+// The Lark tree example
+// From https://github.com/erezsh/lark/blob/a5a20a4/examples/indented_tree.py
+
+?start: _NL* tree
+tree: NAME _NL [_INDENT tree+ _DEDENT]
+%import common.CNAME -> NAME
+%import common.WS_INLINE
+%ignore WS_INLINE
+_NL: /(\r?\n[\t ]*)+/
+_INDENT: "<INDENT>"
+_DEDENT: "<DEDENT>"
