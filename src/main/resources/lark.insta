@@ -16,41 +16,47 @@ rule = rulename <":"> elements
 pragma = import | ignore
 (* Lark has "pragmas", which are directives to the grammar compiler *)
 
-import = "%import" symbol alias ?
-ignore = "%ignore" terminal
+import = <"%import"> symbol alias ?
 
-rulename = <"?"> symbol
+ignore = <"%ignore"> terminal
+
+rulename = rule-tag ? symbol
+
+rule-tag = "?" | "!"
 
 symbol = #"[a-zA-Z_][a-zA-Z0-9\-_\\.]*"
 
 elements = alternation
 
-alternation = concatenation ( <CRLF> * <"|"> alternation ) ?
+alternation = concatenation ( <c-nl> * <"|"> alternation ) ?
 
 concatenation = repetition + alias ?
+(* FIXME: can I get away without + here somehow? *)
 
 alias = <"->"> symbol
 (* Aliases may be used to assign names in the grammar compiler to various entities *)
 
 repetition = element repeat ?
 
-repeat = zero-or-more | one-or-more
+repeat = zero-or-more | one-or-more | zero-or-one
 
-zero-or-more = "*"
+zero-or-more = <"*">
 
-one-or-more = "+"
+one-or-more = <"+">
 
-element = group | option | terminal
+zero-or-one = <"?">
+
+element = group | option-group | terminal
 
 terminal = symbol | char-val | re-pattern
 
-group = "(" alternation ")"
+group = <"("> alternation <")">
 
-option = <"["> alternation <"]"> | alternation "?"
+option-group = <"["> alternation <"]">
 
-char-val = #"\"([^\"]|\\\")*\""
+char-val = <"\""> #"([^\"]|\\\")*" <"\"">
 
-re-pattern = #"/([^\\]|\\\\)*/"
+re-pattern = <"/"> #"([^/\n\r]|\\\/)*" <"/">
 (* Lark uses almost C# style regexes *)
 
 CR = "\r"

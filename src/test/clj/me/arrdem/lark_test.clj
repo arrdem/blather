@@ -4,5 +4,11 @@
             [me.arrdem.blather.lark :refer [parse]]))
 
 (deftest test-calc-parses
+  (testing "Parse the calc grammar."
+    (parse (slurp "etc/calc.lark")))
+
+  (testing "Parse the tree grammar."
+    (parse (slurp "etc/tree.lark")))
+
   (testing "Parse the python3 grammar."
-    (parse (slurp "https://raw.githubusercontent.com/erezsh/lark/7373993/examples/python3.g"))))
+    (parse (slurp "etc/python3.lark"))))
