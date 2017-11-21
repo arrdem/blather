@@ -25,6 +25,105 @@ transformations could be entirely mechanical, given some common intermediary rep
 
 Blather provides a toolkit for writing precisely such transformations.
 
+## Status
+
+- `[9/10]` Parse the RFC 5234 of RFC 5234 into an AST
+- `[9/10]` Parse Lark grammars into an AST
+- `[4/16]` Design an intermediate 'common' representation for BNF operational semantics
+  - `[4/10]` Design and implement an abstract representation of regular expressions. Regex dialects
+    differ, need to be able to convert between them. Escape codes vary, support for quantifiers,
+    etc. Note that regular expressions fully subset BNF, and so it's possible to generate states and
+    rewrite pretty much any regular expression into any BNF dialect which also features
+    quantifiers. This usually isn't desired but is possible.
+  - `[0/3]` Figure out what to do with string literals. They're a special case of regexes that only
+    match one string. Some dialects (RFC 5234) impose restrictions on what characters can occur
+    within a string literal.
+  - `[0/3]` Figure out what to do with byte literals. Again a special case of regex usually used in
+    lieu of escape sequences.
+
+## What Works
+
+Character sets, the basis for regular expressions, exist and satisfy some basic expectations.
+
+```clj
+;; The inverse of the inverse of a character set is the original character set
+me.arrdem.irregular.char-sets> (char-set-negate (char-set-negate (char-range 50 150)))
+{:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
+;; The union of a set with a subset is the source set
+me.arrdem.irregular.char-sets> (char-set-union (char-range 50 150) (char-range 50 100))
+{:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
+;; The union of two disjoint sets is a new set
+me.arrdem.irregular.char-sets> (char-set-union (char-range 50 150) (char-range 0 25))
+{:tag :me.arrdem.irregular.char-sets/char-set,
+ :multi-byte true,
+ :ranges
+ [{:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
+  {:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte false, :upper 25, :lower 0}]}
+;; Negation round-tripping works on character sets not just ranges
+me.arrdem.irregular.char-sets> (char-set-negate (char-set-negate (char-set-union (char-range 50 150) (char-range 0 25))))
+{:tag :me.arrdem.irregular.char-sets/char-set,
+ :multi-byte true,
+ :ranges
+ [{:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte false, :upper 25, :lower 0}
+  {:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}]}
+```
+
+There is as of yet no regex -> AST analyzer, which will be required to do regex rewriting between
+dialects. There is however preliminary support for generating regex strings from regex ASTs.
+
+There is as of yet no regex AST simplification engine. When alternation occurs, we should attempt to
+compile the left and right alternatives down to a minimum single pattern or chain of patterns. The
+naive implementation of this rewrite is probably pretty trivial - `(fix #(simplify* %) node)` and
+worry about being efficient about it later. Basically groups and concatenation are gonna prevent
+optimization for the most part, but that's also what they're there for since they largely are state
+control constructs.
+
+I'll probably write a crappy regex matching implementation, or better yet a compiler from this regex
+representation down to something else (equivalent!) with an existing Clojure/Java
+implementation. Obviously emitting Java regexes is on the cards.
+
+BNF dialects totally parse (that wasn't hard). They don't yet however generate a remotely reasonable
+AST representation beyond their dialect specific syntax tree.
+
+```clj
+me.arrdem.blather.rfc5234> (parse (slurp (clojure.java.io/file "etc/rfc5234.txt")))
+[:rulelist
+ [:addition
+  [:rulename "rulelist"]
+  [:elements
+   [:alternation
+    [:concatenation
+     [:repetition
+      [:repeat [:n-or-more [:DIGIT "1"] "*"]]
+      [:element
+       [:group
+        "("
+        [:alternation
+         [:concatenation [:repetition [:element [:rulename "rule"]]]]
+         [:alternation
+          [:concatenation
+           [:repetition
+            [:element
+             [:group
+              "("
+              [:alternation
+               [:concatenation
+                [:repetition [:repeat [:zero-or-more "*"]] [:element [:rulename "c-wsp"]]]
+                [:repetition [:element [:rulename "c-nl"]]]]]
+              ")"]]]]]]
+        ")"]]]]]]]
+ ...
+ ]
+```
+
+For instance we can say that repetition constructs fall into `n`, `n or more` or `n to m`. Dialects
+may provide notation for special cases, but that's really all there is.
+
+It'd also be nice to be able to talk about the schema (spec/type/whatever) of a dialect in terms of
+the set of features or extensions which it uses. This allows us to talk meaningfully about whether a
+translator or rendering tool is adequate to the needs of the representation we want to emit. I kinda
+got bogged down here tbqh.
+
 ## Grammar support
 
 - [ ] BNF 60 - OG BNF from the ALGOL 60 report (1960)
