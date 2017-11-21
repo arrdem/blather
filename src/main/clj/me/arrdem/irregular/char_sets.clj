@@ -116,7 +116,7 @@
                  ([a b]
                   (char-range-union a b))))))
 
-(defn char-range-difference
+(defn char-range-difference*
   "Implementaton detail.
 
   Subtracts the right character range from the left character range.
@@ -163,7 +163,23 @@
           :else
           (throw (IllegalStateException. "Entered theoretically impossible state!")))))
 
-(defn char-set-difference
+(defn char-set-difference*
+  "Implementation detail.
+
+  Returns a new character range or character set encoding the
+  subtraction of the right range or set from the left range or set."
+  [{:keys [ranges] :as l} r]
+  (let [new-ranges (->> ranges
+                        (map #(char-range-difference* % r))
+                        (mapcat char-set*)
+                        (sort-by :lower)
+                        (sort-by :upper)
+                        vec)]
+    {:tag        ::char-set
+     :multi-byte (some char/multibyte? new-ranges)
+     :ranges     new-ranges}))
+
+(defn char-range-difference
   "Subtracts a number of character ranges & character sets from the left character range or set."
   [l & ranges-and-sets]
   {:pre [(every? #(#{::char-range ::char-set} (:tag %)) ranges-and-sets)]}
@@ -173,9 +189,9 @@
        (reduce (fn
                  ([l] l)
                  ([l e]
-                  (if (< (:upper e) (:lower l))
-                    (reduced l)
-                    (char-range-difference l e))))
+                  (case (:tag l)
+                    (::char-range) (char-range-difference* l e)
+                    (::char-set)   (char-set-difference* l e))))
                l)))
 
 (def ANY-CHAR-RANGE
@@ -189,4 +205,4 @@
 (defn char-set-negate
   "Returns the character set which matches everything the given character set (or range) rejects"
   [range-or-set]
-  (reduce char-range-difference ANY-CHAR-RANGE (char-set* range-or-set)))
+  (apply char-set-difference ANY-CHAR-RANGE (char-set* range-or-set)))
