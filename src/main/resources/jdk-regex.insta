@@ -1,0 +1,36 @@
+(* JDK regexes *)
+
+literal-character = #"[^\\\[\]\(\)\{\}]" | <"\\"> #"[\\\[\]\(\)\{\}]"
+
+octal-codepoint = "0" #"[0-3]?[0-7]?[0-7]"
+
+hex-codepoint = "x" ( #"[a-fA-F0-9]{2,4}" | "{" #"[a-fA-F0-9]+" "}" )
+
+codepoint = octal-codepoint | hex-codepoint
+
+control = <"c"> literal-character
+
+named = #"[tnrfae]"
+(* tab, newline, return, form-feed, bell (alert), escape *)
+
+escaped-character = "\\" ( codepoint | control | named )
+
+character = literal-character | escaped-character
+
+character-class = <"["> "^" ? ( range | character ) + ( <"&&["> "^" ? ( range | character ) + <"]"> ) * <"]">
+
+range = <"{"> #"\d+" ( "," ( #"\d+" ? ) ) ? <"}">
+
+repetition-quantifier = "?" | "*" | "+" | range
+
+parenthetical = <"("> alternation <")">
+
+atom = character-class | character | parenthetical
+
+repetition = atom repetition-quantifier
+
+concatenation = ( repetition | atom ) concatenation ?
+
+alternation = concatenation ( <"|"> alternation ) ?
+
+pattern = alternation

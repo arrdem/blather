@@ -205,4 +205,4 @@
 (defn char-set-negate
   "Returns the character set which matches everything the given character set (or range) rejects"
   [range-or-set]
-  (apply char-set-difference ANY-CHAR-RANGE (char-set* range-or-set)))
+  (apply char-set-difference* ANY-CHAR-RANGE (char-set* range-or-set)))
