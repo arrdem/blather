@@ -19,6 +19,9 @@
   {:concatenation (fn
                     ([x] x)
                     ([x y & more] `[:concatenation ~x ~y ~@more]))
+   :alternation   (fn
+                    ([x] x)
+                    ([x y & more] `[:alternation ~x ~y ~@more]))
    :character     identity
    :atom          identity})
 
