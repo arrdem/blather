@@ -21,13 +21,13 @@ character-class = <"["> "^" ? ( range | character ) + ( <"&&["> "^" ? ( range | 
 
 range = <"{"> #"\d+" ( "," ( #"\d+" ? ) ) ? <"}">
 
-repetition-quantifier = "?" | "*" | "+" | range
+quantifier = "?" | "*" | "+" | range
 
 parenthetical = <"("> alternation <")">
 
 atom = character-class | character | parenthetical
 
-repetition = atom repetition-quantifier
+repetition = atom quantifier
 
 concatenation = ( repetition | atom ) concatenation ?
 
