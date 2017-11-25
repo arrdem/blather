@@ -210,6 +210,8 @@
    ;; Repetition
    ;;----------------------------------------
    :simple-repetition    identity
+   :posessive-repetition c/posessive
+   :relucant-repetition  c/reluctant 
    :shorthand-repetition (fn [e shorthand]
                            (({"*" c/rep*
                               "?" c/rep?
@@ -221,8 +223,7 @@
                            ([e lower-limit upper-limit]
                             (c/rep-nm e (Long/parseLong lower-limit) (Long/parseLong upper-limit))))
    :unbounded-repetition (fn [e lower-limit]
-                           (c/rep-n+ e (Long/parseLong lower-limit)))
-   })
+                           (c/rep-n+ e (Long/parseLong lower-limit)))})
 
 (defn parse
   "Consumes a resource, parsing it as a RFC5234 structured text, and generating an analyzed FSM"

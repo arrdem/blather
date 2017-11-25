@@ -4,38 +4,6 @@
   (:require [clojure.string :refer [join]]
             [me.arrdem.irregular.char :as char]))
 
-;; Eagerness
-;;----------------------------------------
-(defn greedy
-  "The wrapped combinator will consume AS MUCH AS IT CAN."
-  [pattern]
-  {:tag        ::greedy
-   :multi-byte (char/multibyte? pattern)
-   :pattern    pattern})
-
-(defmethod char/multibyte? ::greedy [{:keys [pattern]}]
-  (char/multibyte? pattern))
-
-(defn reluctant
-  "The wrapped pattern will consume ONLY AS MUCH as it takes to achieve a matched state."
-  [pattern]
-  {:tag        ::reluctant
-   :multi-byte (char/multibyte? pattern)
-   :pattern    pattern})
-
-(defmethod char/multibyte? ::reluctant [{:keys [pattern]}]
-  (char/multibyte? pattern))
-
-(defn posessive
-  "The wrapped pattern will consume ONLY AS MUCH as it takes to achieve a matched state."
-  [pattern]
-  {:tag        ::posessive
-   :multi-byte (char/multibyte? pattern)
-   :pattern    pattern})
-
-(defmethod char/multibyte? ::reluctant [{:keys [pattern]}]
-  (char/multibyte? pattern))
-
 ;; Concatenation
 ;;----------------------------------------
 (defn cat
@@ -116,33 +84,49 @@
 (defmethod char/multibyte? ::named-group [{:keys [pattern]}]
   (char/multibyte? pattern))
 
+;; Eagerness
+;;----------------------------------------
+(def behavior?
+  #{::greedy ::reluctant ::possessive})
+
 ;; Repetition
 ;;----------------------------------------
 (defn rep-n
   "A repetition of precisely N."
-  [pattern count]
-  {:tag        ::rep-n
-   :multi-byte (char/multibyte? pattern)
-   :pattern    pattern
-   :count      count})
+  ([pattern count]
+   (rep-n ::greedy pattern count))
+  ([behavior pattern count]
+   {:pre [(behavior? behavior)]}
+   {:tag        ::rep-n
+    :behavior   behavior
+    :multi-byte (char/multibyte? pattern)
+    :pattern    pattern
+    :count      count}))
 
-;; FIXME: lazy or eager?
 (defn rep-n+
   "A repetition of N or more."
-  [pattern count]
-  {:tag        ::rep-n+
-   :multi-byte (char/multibyte? pattern)
-   :pattern    pattern
-   :count      count})
+  ([pattern count]
+   (rep-n+ ::greedy pattern count))
+  ([behavior pattern count]
+   {:pre [(behavior? behavior)]}
+   {:tag        ::rep-n+
+    :behavior   behavior
+    :multi-byte (char/multibyte? pattern)
+    :pattern    pattern
+    :count      count}))
 
 (defn rep-nm
   "A repetition of N to M occurrences"
-  [pattern min max]
-  {:tag        ::rep-nm
-   :multi-byte (char/multibyte? pattern)
-   :pattern    pattern
-   :min        min
-   :max        max})
+  ([pattern min max]
+   (rep-nm ::greedy pattern min max))
+  ([behavior pattern min max]
+   {:pre [(behavior? behavior)]}
+   {:tag        ::rep-nm
+    :behavior   behavior
+    :multi-byte (char/multibyte? pattern)
+    :pattern    pattern
+    :min        min
+    :max        max}))
 
 (defn rep+
   "Helper, repetition of 1 or more."
@@ -158,3 +142,15 @@
   "Helper, repetition of 0 or 1."
   [pattern]
   (rep-nm pattern 0 1))
+
+(defn reluctant
+  "Transforms the given combinator, returning a combinator which will
+  match the same string with reluctant semantics."
+  [combinator]
+  (assoc combinator :behavior ::reluctant))
+
+(defn posessive
+  "Transforms the given combinator, returning a combinator which will
+  match the same string with posessive semantics."
+  [combinator]
+  (assoc combinator :behavior ::posessive))
