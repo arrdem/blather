@@ -83,7 +83,7 @@
           {:tag        ::char-set
            :multi-byte (or (char/multibyte? l)
                            (char/multibyte? r))
-           :ranges     [l r]}
+           :ranges     [r l]}
 
           ;; There is no other possible case because for l-upper to be LESS than r-lower, either r
           ;; is invalid or r is strictly greater than l in which case our sorting invariant is
@@ -114,7 +114,41 @@
                  ([] EMPTY-CHAR-SET)
                  ([a] a)
                  ([a b]
-                  (char-range-union a b))))))
+                  (if (and (= (:tag a) ::char-set)
+                           (not (:ranges a)))
+                    ;; The easy case, we got nothing on the left and something on the right
+                    b
+                    ;; The hard case, we have either a range or a set on the left and a range on the
+                    ;; right. So we take the range or the last of the ranges (being the only one
+                    ;; that could intersect thanks to the sorting property from above) and intersect
+                    ;; those two.
+                    ;;
+                    ;; If we started with ranges and got a range, we take the resulting range.
+                    ;; If we started with a range and we got a set, we take the resulting set.
+                    ;; If we started with a set and we got a new set back, we 
+                    (let [a*  (case (:tag a)
+                                ::char-range a
+                                ::char-set   (last (:ranges a)))
+                          res (char-range-union a* b)]
+                      (case [(:tag a) (:tag res)]
+                        ([::char-range ::char-range]
+                         [::char-range ::char-set])
+                        res
+
+                        ([::char-set ::char-range])
+                        ;; The last two ranges condensed.
+                        (let [ranges `[~@(butlast (:ranges a)) ~res]]
+                          {:tag        ::char-set
+                           :multi-byte (some char/multibyte? ranges)
+                           :ranges     ranges})
+
+                        ([::char-set ::char-set])
+                        ;; The last two ranges were disjoint
+                        (let [ranges `[~@(:ranges a) ~b]]
+                          {:tag        ::char-set
+                           :multi-byte (or (char/multibyte? a)
+                                           (char/multibyte? b))
+                           :ranges     ranges})))))))))
 
 (defn char-range-difference*
   "Implementaton detail.
@@ -179,7 +213,7 @@
      :multi-byte (some char/multibyte? new-ranges)
      :ranges     new-ranges}))
 
-(defn char-range-difference
+(defn char-set-difference
   "Subtracts a number of character ranges & character sets from the left character range or set."
   [l & ranges-and-sets]
   {:pre [(every? #(#{::char-range ::char-set} (:tag %)) ranges-and-sets)]}
@@ -206,3 +240,56 @@
   "Returns the character set which matches everything the given character set (or range) rejects"
   [range-or-set]
   (apply char-set-difference* ANY-CHAR-RANGE (char-set* range-or-set)))
+
+(defn char-range-intersection
+  "Implementation detail.
+
+  Given a pair of character ranges L and R, returns the range which
+  they share, or `#'EMPTY-CHAR-SET` if there is no overlap."
+  [l r]
+  (let [;; Provide the invariant that l is the "greater" of the two by upper bound.
+        [l r] (cond
+                ;; L strictly greater than R
+                (> (:upper l) (:upper r))
+                [l r]
+
+                ;; L and R "equal", sort by lower bound.
+                (= (:upper l) (:upper r))
+                (if (>= (:lower l) (:lower r))
+                  [l r] [r l])
+
+                ;; R strictly greater
+                :else
+                [r l])
+        ;; Destructuring for convenience
+        {lupper :upper llower :lower} l
+        {rupper :upper rlower :lower} r]
+    (cond (> llower rupper)
+          ;; There is a strict ordering on the ranges, one entirely above, one entirely below.
+          EMPTY-CHAR-SET
+
+          (>= lupper rupper llower rlower)
+          ;; L is above R but there is overlap
+          (char-range rupper llower)
+
+          (>= lupper rupper rlower llower)
+          r
+
+          :else
+          (throw (IllegalStateException. "Entered theoretically impossible state!")))))
+
+(defn char-set-intersection
+  "Returns the intersection of the left set/range with the right set/range"
+  [l & ranges-and-sets]
+  {:pre [(every? #(#{::char-range ::char-set} (:tag %)) ranges-and-sets)]}
+  ;; FIXME: Naive but correct implementation. Compute the sequence of ranges constituting the left
+  ;; and right character sets. Then compute the CROSS PRODUCT of overlapping ranges, and union the
+  ;; resulting overlapping ranges together. Union is a monoid, so we don't have to special case
+  ;; repetition or anything else and we're order insensitive. We just do more work than strictly
+  ;; required. It's fine, cores are fast.
+  (->> (for [l     (char-set* l)
+             r     (mapcat char-set* ranges-and-sets) 
+             :let  [i (char-range-intersection l r)]
+             :when (not= i EMPTY-CHAR-SET)]
+         i)
+       (apply char-set-union)))

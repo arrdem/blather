@@ -1,33 +1,63 @@
 (* JDK regexes *)
 
-literal-character = #"[^\\\[\]\(\)\{\}]" | <"\\"> #"[\\\[\]\(\)\{\}]"
+simple-character = #"[^\\\[\]\(\)\{\}\.*+?]"
 
-octal-codepoint = "0" #"[0-3]?[0-7]?[0-7]"
+special-character = #"[\[\]\(\)\{\}\.*+?]"
 
-hex-codepoint = "x" ( #"[a-fA-F0-9]{2,4}" | "{" #"[a-fA-F0-9]+" "}" )
+octal-codepoint = <"0"> #"[0-3]?[0-7]?[0-7]"
+
+hex-codepoint = <"x"> ( #"[a-fA-F0-9]{2,4}" | <"{"> #"[a-fA-F0-9]+" <"}"> )
 
 codepoint = octal-codepoint | hex-codepoint
 
-control = <"c"> literal-character
+control-character = <"c"> simple-character
 
-named = #"[tnrfae]"
+named-character = #"[tnrfae]"
 (* tab, newline, return, form-feed, bell (alert), escape *)
 
-escaped-character = "\\" ( codepoint | control | named )
+negative-named-character-class = <"P{"> #"[^\}]+" <"}">
 
-character = literal-character | escaped-character
+positive-named-character-class = <"p{"> #"[^\}]+" <"}">
 
-character-class = <"["> "^" ? ( range | character ) + ( <"&&["> "^" ? ( range | character ) + <"]"> ) * <"]">
+named-character-class = positive-named-character-class | negative-named-character-class
 
-range = <"{"> #"\d+" ( "," ( #"\d+" ? ) ) ? <"}">
+escaped-character = <"\\"> ( codepoint | control-character | named-character | named-character-class | special-character)
 
-quantifier = "?" | "*" | "+" | range
+character = escaped-character | simple-character
+
+character-range = character <"-"> character
+
+positive-character-class = ( character-range / character ) +
+
+negative-character-class = <"^"> ( character-range / character ) +
+
+character-class-intersection = ( character-range / character ) +
+(* Yes this is the same as positive-character-class *)
+
+character-class-difference = <"^"> ( character-range / character ) +
+(* Yes this is the same as negative-character-class *)
+
+character-class-arithmetic = ( <"&&["> ( character-class-intersection | character-class-difference ) <"]"> ) +
+
+character-class = <"["> ( negative-character-class / positive-character-class ) character-class-arithmetic ? <"]">
+
+shorthand-repetition = atom ("?" | "*" | "+")
+
+bounded-repetition = atom ( <"{"> #"\d+" ( <","> #"\d+" ) ? <"}"> )
+
+unbounded-repetition = atom ( <"{"> #"\d+" <","> <"}"> )
 
 parenthetical = <"("> alternation <")">
 
 atom = character-class | character | parenthetical
 
-repetition = atom quantifier
+simple-repetition = unbounded-repetition / bounded-repetition / shorthand-repetition
+
+posessive-repetition = simple-repetition <"+">
+
+relucant-repetition = simple-repetition <"?">
+
+repetition = posessive-repetition / relucant-repetition / simple-repetition / atom
 
 concatenation = ( repetition | atom ) concatenation ?
 
