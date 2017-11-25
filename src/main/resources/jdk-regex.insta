@@ -53,11 +53,11 @@ atom = character-class | character | parenthetical
 
 simple-repetition = unbounded-repetition / bounded-repetition / shorthand-repetition
 
-posessive-repetition = simple-repetition <"+">
+possessive-repetition = simple-repetition <"+">
 
 relucant-repetition = simple-repetition <"?">
 
-repetition = posessive-repetition / relucant-repetition / simple-repetition / atom
+repetition = possessive-repetition / relucant-repetition / simple-repetition / atom
 
 concatenation = ( repetition | atom ) concatenation ?
 

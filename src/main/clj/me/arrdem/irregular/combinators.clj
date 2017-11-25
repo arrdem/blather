@@ -149,8 +149,8 @@
   [combinator]
   (assoc combinator :behavior ::reluctant))
 
-(defn posessive
+(defn possessive
   "Transforms the given combinator, returning a combinator which will
-  match the same string with posessive semantics."
+  match the same string with possessive semantics."
   [combinator]
-  (assoc combinator :behavior ::posessive))
+  (assoc combinator :behavior ::possessive))

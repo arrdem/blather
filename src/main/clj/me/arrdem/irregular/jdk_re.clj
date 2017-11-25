@@ -166,7 +166,8 @@
   "Map from node IDs to node transformer functions.
 
   Note that nodes cannot be deleted by returning nil when transforming them."
-  {:atom              as-character-class
+  {:pattern           identity
+   :atom              as-character-class
    :escaped-character identity
 
    ;; Simplify some terms with optionals
@@ -208,21 +209,21 @@
 
    ;; Repetition
    ;;----------------------------------------
-   :simple-repetition    identity
-   :posessive-repetition c/posessive
-   :relucant-repetition  c/reluctant
-   :shorthand-repetition (fn [e shorthand]
-                           (({"*" c/rep*
-                              "?" c/rep?
-                              "+" c/rep+} shorthand)
-                            e))
-   :bounded-repetition   (fn
-                           ([e lower-limit]
-                            (c/rep-n e (Long/parseLong lower-limit)))
-                           ([e lower-limit upper-limit]
-                            (c/rep-nm e (Long/parseLong lower-limit) (Long/parseLong upper-limit))))
-   :unbounded-repetition (fn [e lower-limit]
-                           (c/rep-n+ e (Long/parseLong lower-limit)))})
+   :simple-repetition     identity
+   :possessive-repetition c/possessive
+   :relucant-repetition   c/reluctant
+   :shorthand-repetition  (fn [e shorthand]
+                            (({"*" c/rep*
+                               "?" c/rep?
+                               "+" c/rep+} shorthand)
+                             e))
+   :bounded-repetition    (fn
+                            ([e lower-limit]
+                             (c/rep-n e (Long/parseLong lower-limit)))
+                            ([e lower-limit upper-limit]
+                             (c/rep-nm e (Long/parseLong lower-limit) (Long/parseLong upper-limit))))
+   :unbounded-repetition  (fn [e lower-limit]
+                            (c/rep-n+ e (Long/parseLong lower-limit)))})
 
 (defn parse
   "Consumes a resource, parsing it as a RFC5234 structured text, and generating an analyzed FSM"
