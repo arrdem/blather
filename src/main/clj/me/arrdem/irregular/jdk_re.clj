@@ -147,13 +147,10 @@
   \"complex\" interval dependent on JDK features."
   ([cls] cls)
   ([cls [_ & clauses]]
-   (reduce (fn [cls1 [op cls2]] 
-             (let [cls2 (if (instance? Character cls2)
-                          (s/char cls2)
-                          cls2)] 
-               ((get {:character-class-intersection s/char-set-intersection
-                      :character-class-difference   s/char-set-difference} op)
-                cls1 cls2)))
+   (reduce (fn [cls1 [op & clss]]
+             (let [xform (get {:character-class-intersection s/char-set-intersection
+                               :character-class-difference   s/char-set-difference} op)]
+               (apply xform cls1 (map as-character-class clss))))
            cls clauses)))
 
 (defn parse-repetition
@@ -199,8 +196,10 @@
                                      (s/char-set-difference s/ANY-CHAR-RANGE
                                                             (parse-named-character-class name)))
 
-   :character-range          s/char-range 
-   :negative-character-class (fn [cls] (s/char-set-difference s/ANY-CHAR-RANGE cls))
+   :character-range          s/char-range
+   :negative-character-class (fn [& clss]
+                               (->> (map as-character-class clss)
+                                    (apply s/char-set-difference s/ANY-CHAR-RANGE)))
    :character-class          parse-character-class
    :positive-character-class (fn [& chars-or-ranges]
                                (->> chars-or-ranges
@@ -211,7 +210,7 @@
    ;;----------------------------------------
    :simple-repetition    identity
    :posessive-repetition c/posessive
-   :relucant-repetition  c/reluctant 
+   :relucant-repetition  c/reluctant
    :shorthand-repetition (fn [e shorthand]
                            (({"*" c/rep*
                               "?" c/rep?

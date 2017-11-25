@@ -30,7 +30,7 @@ Blather provides a toolkit for writing precisely such transformations.
 - `[9/10]` Parse the RFC 5234 of RFC 5234 into an AST
 - `[9/10]` Parse Lark grammars into an AST
 - `[4/16]` Design an intermediate 'common' representation for BNF operational semantics
-  - `[4/10]` Design and implement an abstract representation of regular expressions. Regex dialects
+  - `[9/10]` Design and implement an abstract representation of regular expressions. Regex dialects
     differ, need to be able to convert between them. Escape codes vary, support for quantifiers,
     etc. Note that regular expressions fully subset BNF, and so it's possible to generate states and
     rewrite pretty much any regular expression into any BNF dialect which also features
@@ -66,6 +66,40 @@ me.arrdem.irregular.char-sets> (char-set-negate (char-set-negate (char-set-union
  :ranges
  [{:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte false, :upper 25, :lower 0}
   {:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}]}
+```
+
+There exists a preliminary regex -> AST analyzer which is at least sufficient for analyzing Java
+style regexes. It's definitely sufficient for analyzing POSIX regular expressions, but that isn't
+implemented quite yet.
+
+```clj
+me.arrdem.irregular.jdk-re> (parse "a++[a-z&&[^ac]]*?c?")
+[:pattern
+ {:tag :me.arrdem.irregular.combinators/cat,
+  :multi-byte false,
+  :pattern1 {:tag :me.arrdem.irregular.combinators/rep-n+,
+             :behavior :me.arrdem.irregular.combinators/posessive,
+             :multi-byte false, :count 1,
+             :pattern {:tag :me.arrdem.irregular.char-sets/char-range,
+                       :multi-byte false, :upper 97, :lower 97}},
+  :pattern2 {:tag :me.arrdem.irregular.combinators/cat,
+             :multi-byte false,
+             :pattern1 {:tag :me.arrdem.irregular.combinators/rep-n+,
+                        :behavior :me.arrdem.irregular.combinators/reluctant,
+                        :multi-byte nil,
+                        :pattern {:tag :me.arrdem.irregular.char-sets/char-set,
+                                  :multi-byte false,
+                                  :ranges [{:tag :me.arrdem.irregular.char-sets/char-range,
+								            :multi-byte false, :upper 122, :lower 100}
+                                           {:tag :me.arrdem.irregular.char-sets/char-range,
+										    :multi-byte false, :upper 98, :lower 98}]},
+                        :count 1},
+             :pattern2 {:tag :me.arrdem.irregular.combinators/rep-nm,
+                        :behavior :me.arrdem.irregular.combinators/greedy,
+                        :multi-byte false, :min 0, :max 1,
+                        :pattern {:tag :me.arrdem.irregular.char-sets/char-range,
+                                  :multi-byte false,
+                                  :upper 99, :lower 99}}}}]
 ```
 
 There is as of yet no regex -> AST analyzer, which will be required to do regex rewriting between
