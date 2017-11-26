@@ -293,3 +293,14 @@
              :when (not= i EMPTY-CHAR-SET)]
          i)
        (apply char-set-union)))
+
+(defn as-character-class
+  "Helper for mapping integer and character values to character classes."
+  [range-char-or-jdk]
+  (cond (instance? Character range-char-or-jdk)
+        (char range-char-or-jdk)
+
+        (integer? range-char-or-jdk)
+        (char range-char-or-jdk)
+
+        :else range-char-or-jdk))

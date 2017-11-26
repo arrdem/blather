@@ -127,15 +127,6 @@
   (or (get -named-character-classes name)
       (throw (IllegalArgumentException. (format "No known character class '%s'" name)))))
 
-(defn as-character-class [range-char-or-jdk]
-  (cond (instance? Character range-char-or-jdk)
-        (s/char range-char-or-jdk)
-
-        (integer? range-char-or-jdk)
-        (s/char range-char-or-jdk)
-
-        :else range-char-or-jdk))
-
 (defn parse-character-class
   "Accepts a structure of the form
 
@@ -150,7 +141,7 @@
    (reduce (fn [cls1 [op & clss]]
              (let [xform (get {:character-class-intersection s/char-set-intersection
                                :character-class-difference   s/char-set-difference} op)]
-               (apply xform cls1 (map as-character-class clss))))
+               (apply xform cls1 (map s/as-character-class clss))))
            cls clauses)))
 
 (defn parse-repetition
@@ -167,7 +158,7 @@
 
   Note that nodes cannot be deleted by returning nil when transforming them."
   {:pattern           identity
-   :atom              as-character-class
+   :atom              s/as-character-class
    :escaped-character identity
 
    ;; Simplify some terms with optionals
@@ -199,12 +190,12 @@
 
    :character-range          s/char-range
    :negative-character-class (fn [& clss]
-                               (->> (map as-character-class clss)
+                               (->> (map s/as-character-class clss)
                                     (apply s/char-set-difference s/ANY-CHAR-RANGE)))
    :character-class          parse-character-class
    :positive-character-class (fn [& chars-or-ranges]
                                (->> chars-or-ranges
-                                    (map as-character-class)
+                                    (map s/as-character-class)
                                     (apply s/char-set-union)))
 
    ;; Repetition
