@@ -5,7 +5,7 @@
     AKA https://www.ietf.org/rfc/rfc5234.txt
 *)
 
-rulelist =  ( rule | addition | <c-nl> ) *
+rulelist =  ( rule / addition / <c-nl> ) *
 
 rule =  rulename <"="> elements <c-nl>
 (* continues if next line starts with white space *)
@@ -42,7 +42,7 @@ range-repeat =  DIGIT ? "*" DIGIT ?
 specific-repeat = DIGIT
 
 
-element =  rulename | group | option | char-val | num-val | prose-val
+element =  rulename / group / option / char-val / num-val / prose-val
 
 group =  <"("> alternation <")">
 
@@ -53,7 +53,7 @@ char-val = <"\""> #"[^\"]*" <"\"">
    quoted string of SP and VCHAR without DQUOTE
 *)
 
-num-val =  <"%"> ( bin | dec | hex )
+num-val =  <"%"> ( bin / dec / hex )
 
 bin =  <"b"> ( range / pair / val )
 (* series of concatenated bit values or single ONEOF range *)
@@ -91,22 +91,6 @@ DIGIT =  #"[0-9]+"
 
 LF =  "\n"
 (* linefeed *)
-
-(* LWSP =  ( WSP | CRLF WSP ) *
-
-   Dead terminal and removed due to referencing removed WSP
-
-   Use of this linear-white-space rule
-   permits lines containing only white
-   space that are no longer legal in
-   mail headers and have caused
-   interoperability problems in other
-   contexts.
-
-   Do not use when defining mail
-   headers and use with caution in
-   other contexts.
-*)
 
 OCTET =  #"[\x00-\xFF]"
 (* 8 bits of data *)
