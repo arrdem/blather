@@ -74,36 +74,32 @@ implemented quite yet.
 
 ```clj
 me.arrdem.irregular.jdk-re> (parse "a++[a-z&&[^ac]]*?c?")
-[:pattern
- {:tag :me.arrdem.irregular.combinators/cat,
-  :multi-byte false,
-  :pattern1 {:tag :me.arrdem.irregular.combinators/rep-n+,
-             :behavior :me.arrdem.irregular.combinators/posessive,
-             :multi-byte false, :count 1,
-             :pattern {:tag :me.arrdem.irregular.char-sets/char-range,
-                       :multi-byte false, :upper 97, :lower 97}},
-  :pattern2 {:tag :me.arrdem.irregular.combinators/cat,
-             :multi-byte false,
-             :pattern1 {:tag :me.arrdem.irregular.combinators/rep-n+,
-                        :behavior :me.arrdem.irregular.combinators/reluctant,
-                        :multi-byte nil,
-                        :pattern {:tag :me.arrdem.irregular.char-sets/char-set,
-                                  :multi-byte false,
-                                  :ranges [{:tag :me.arrdem.irregular.char-sets/char-range,
-								            :multi-byte false, :upper 122, :lower 100}
-                                           {:tag :me.arrdem.irregular.char-sets/char-range,
-										    :multi-byte false, :upper 98, :lower 98}]},
-                        :count 1},
-             :pattern2 {:tag :me.arrdem.irregular.combinators/rep-nm,
-                        :behavior :me.arrdem.irregular.combinators/greedy,
-                        :multi-byte false, :min 0, :max 1,
-                        :pattern {:tag :me.arrdem.irregular.char-sets/char-range,
-                                  :multi-byte false,
-                                  :upper 99, :lower 99}}}}]
+{:tag :me.arrdem.irregular.combinators/cat,
+ :multi-byte false,
+ :pattern1 {:tag :me.arrdem.irregular.combinators/rep-n+,
+            :behavior :me.arrdem.irregular.combinators/possessive,
+            :multi-byte false, :count 1,
+            :pattern {:tag :me.arrdem.irregular.char-sets/char-range,
+                      :multi-byte false, :upper 97, :lower 97}},
+ :pattern2 {:tag :me.arrdem.irregular.combinators/cat,
+            :multi-byte false,
+            :pattern1 {:tag :me.arrdem.irregular.combinators/rep-n+,
+                       :behavior :me.arrdem.irregular.combinators/reluctant,
+                       :multi-byte nil,
+                       :pattern {:tag :me.arrdem.irregular.char-sets/char-set,
+                                 :multi-byte false,
+                                 :ranges [{:tag :me.arrdem.irregular.char-sets/char-range,
+                                           :multi-byte false, :upper 122, :lower 100}
+                                          {:tag :me.arrdem.irregular.char-sets/char-range,
+                                           :multi-byte false, :upper 98, :lower 98}]},
+                       :count 1},
+            :pattern2 {:tag :me.arrdem.irregular.combinators/rep-nm,
+                       :behavior :me.arrdem.irregular.combinators/greedy,
+                       :multi-byte false, :min 0, :max 1,
+                       :pattern {:tag :me.arrdem.irregular.char-sets/char-range,
+                                 :multi-byte false,
+                                 :upper 99, :lower 99}}}}
 ```
-
-There is as of yet no regex -> AST analyzer, which will be required to do regex rewriting between
-dialects. There is however preliminary support for generating regex strings from regex ASTs.
 
 There is as of yet no regex AST simplification engine. When alternation occurs, we should attempt to
 compile the left and right alternatives down to a minimum single pattern or chain of patterns. The
@@ -112,9 +108,19 @@ worry about being efficient about it later. Basically groups and concatenation a
 optimization for the most part, but that's also what they're there for since they largely are state
 control constructs.
 
-I'll probably write a crappy regex matching implementation, or better yet a compiler from this regex
-representation down to something else (equivalent!) with an existing Clojure/Java
-implementation. Obviously emitting Java regexes is on the cards.
+Another wrinkle is repetition quantifiers - quantifiers with different behavior (eg greedy vs lazy
+vs possessive) needn't reduce under concatenation. Detecting stupid patterns without attempting to
+compile down to a matching machine is gonna be Hard.
+
+A preliminary compiler from my JDK RE internal representation back to a valid JDK RE string exists
+and works well enough to be dangerous.
+
+```clj
+me.arrdem.irregular.jdk-re> (compile (parse "a++[a-z&&[^ac]]*?c?"))
+#"a++[[d-z]b]+?c?"
+me.arrdem.irregular.jdk-re> (emit (parse "a++[a-z&&[^ac]]*?c?"))
+a++[[d-z]b]+?c?
+```
 
 BNF dialects totally parse (that wasn't hard). They don't yet however generate a remotely reasonable
 AST representation beyond their dialect specific syntax tree.

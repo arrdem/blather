@@ -239,7 +239,7 @@
 (defmethod -render ::c/alt [{:keys [pattern1 pattern2]}]
   (str (-render pattern1) "|" (-render pattern2)))
 
-(defmethod -render ::i/integer [i]
+(defmethod -render :integer [i]
   (if (or (Character/isISOControl ^int (int i))
           (> i 127))
     (format "\\u%04X" (int i))
@@ -262,3 +262,30 @@
 
 (defmethod -render ::c/group [{:keys [pattern]}]
   (format "(%s)" (-render pattern)))
+
+(defn -append-behavior [{:keys [behavior] :as node} text]
+  (case behavior
+    (::c/greedy)     text
+    (::c/reluctant)  (str text "?")
+    (::c/possessive) (str text "+")))
+
+(defmethod -render ::c/rep-n+ [{:keys [pattern count] :as node}]
+  (as-> (-render pattern) s
+    (if (= count 1) (format "%s+" s) (format "%s{%s,}" s count))
+    (-append-behavior node s)))
+
+(defmethod -render ::c/rep-nm [{:keys [pattern min max] :as node}]
+  (as-> (-render pattern) s
+    (if (and (= min 0) (= max 1))
+      (format "%s?" s)
+      (format "%s{%s,%s}" min max))
+    (-append-behavior node s)))
+
+(defn emit [pattern]
+  "Renders a regex AST to a JDK regex string."
+  ;; FIXME: simplify first.
+  (-render pattern))
+
+(defn compile [pattern]
+  "Emits a regex AST as a JDK Pattern."
+  (re-pattern (emit pattern)))
