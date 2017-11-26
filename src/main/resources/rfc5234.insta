@@ -10,7 +10,7 @@ rulelist =  ( rule | addition | <c-nl> ) *
 rule =  rulename <"="> elements <c-nl>
 (* continues if next line starts with white space *)
 
-addition = rulename <"="> elements <c-nl>
+addition = rulename <"=/"> elements <c-nl>
 (* additions add more alternations to an existing rule *)
 
 rulename =  #"[a-zA-Z][a-zA-Z0-9\-]*"
@@ -29,39 +29,53 @@ comment =  #";[^\n\r]*" <CRLF>
 
 alternation =  concatenation ( <c-nl> * <"/"> alternation ) ?
 
-concatenation =  repetition +
+concatenation =  repetition concatenation ?
 
 repetition =  repeat ? element
 
-repeat = zero-or-more | n-or-more
+repeat = range-repeat / specific-repeat
+(* Either a range repetition or a specific repetition may occur *)
 
-zero-or-more = "*"
+range-repeat =  DIGIT ? "*" DIGIT ?
+(* Both the upper and lower bound are specified as being optional *)
 
-n-or-more = DIGIT "*"
+specific-repeat = DIGIT
+
 
 element =  rulename | group | option | char-val | num-val | prose-val
 
-group =  "(" alternation ")"
+group =  <"("> alternation <")">
 
-option =  "[" alternation "]"
+option =  <"["> alternation <"]">
 
-char-val =  #"\"[^\"]*\""
+char-val = <"\""> #"[^\"]*" <"\"">
 (* originally DQUOTE (%x20-21 | %x23-7E)+ DQUOTE
    quoted string of SP and VCHAR without DQUOTE
-
-   Note that this is actually more permissive WRT unicode.
 *)
 
-num-val =  "%" ( bin-val | dec-val | hex-val )
+num-val =  <"%"> ( bin | dec | hex )
 
-bin-val =  #"b[0-1]+((\.[0-1]+)|(-[01]+))?"
+bin =  <"b"> ( range / pair / val )
 (* series of concatenated bit values or single ONEOF range *)
 
-dec-val =  #"d[0-9]+((\.[0-9]+)|(-[0-9]+))?"
+dec =  <"d"> ( range / pair / val )
 
-hex-val =  #"x[0-9A-F]+((\.[0-9A-F]+)|(-[0-9A-F]+))?"
+hex =  <"x"> ( range / pair / val )
 
-prose-val =  #"<[^>]*>"
+range = #"[0-9A-F]+" <"-"> #"[0-9A-F]+"
+
+pair = #"[0-9A-F]+" <"."> #"[0-9A-F]+"
+
+val = #"[0-9A-F]+"
+
+(* Note: originally range, pair and val were specified as alternations per encoding base.  For
+   grammar simplicity, this was reduced to generic range and pair terminals which may be decoded at
+   the level of the bin/dec/hex node. This does make the parse grammar laxer as the Instaparse
+   parser will now consider any valid numeric string legal while reading, so the tree transformer
+   must reject incorrectly encoded literals.
+*)
+
+prose-val =  <"<"> #"[^>]*" <">">
 (* bracketed string of SP and VCHAR without angles prose description, to be used as last resort *)
 
 CR =  "\r"
@@ -69,7 +83,7 @@ CR =  "\r"
 
 CRLF =  CR ? LF
 (* Internet standard newline
-   NOTE: Originally the CR was required. I made it optional to support Unix encoded files.
+   Note: Originally the CR was required. I made it optional to support Unix encoded files.
 *)
 
 DIGIT =  #"[0-9]+"
