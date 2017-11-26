@@ -136,7 +136,7 @@
 (defn rep*
   "Helper, repetition of 0 or more."
   [pattern]
-  (rep-n+ pattern 1))
+  (rep-n+ pattern 0))
 
 (defn rep?
   "Helper, repetition of 0 or 1."
