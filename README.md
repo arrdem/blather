@@ -47,25 +47,33 @@ Character sets, the basis for regular expressions, exist and satisfy some basic 
 
 ```clj
 ;; The inverse of the inverse of a character set is the original character set
-irregular.char-sets> (char-set-negate (char-set-negate (char-range 50 150)))
-{:tag :irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
+irregular.char-sets> (-> (char-range 50 150)
+                         char-set-negate char-set-negate)
+{:tag :irregular.char-sets/char-range,
+ :multi-byte true, :upper 150, :lower 50}
 ;; The union of a set with a subset is the source set
-irregular.char-sets> (char-set-union (char-range 50 150) (char-range 50 100))
-{:tag :irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
+irregular.char-sets> (char-set-union (char-range 50 150)
+                                     (char-range 50 100))
+{:tag :irregular.char-sets/char-range,
+ :multi-byte true, :upper 150, :lower 50}
 ;; The union of two disjoint sets is a new set
-irregular.char-sets> (char-set-union (char-range 50 150) (char-range 0 25))
+irregular.char-sets> (char-set-union (char-range 50 150)
+                                     (char-range 0 25))
 {:tag :irregular.char-sets/char-set,
  :multi-byte true,
- :ranges
- [{:tag :irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
-  {:tag :irregular.char-sets/char-range, :multi-byte false, :upper 25, :lower 0}]}
+ :ranges [{:tag :irregular.char-sets/char-range,
+           :multi-byte true, :upper 150, :lower 50}
+          {:tag :irregular.char-sets/char-range,
+           :multi-byte false, :upper 25, :lower 0}]}
 ;; Negation round-tripping works on character sets not just ranges
-irregular.char-sets> (char-set-negate (char-set-negate (char-set-union (char-range 50 150) (char-range 0 25))))
+irregular.char-sets> (-> (char-set-union (char-range 50 150) (char-range 0 25))
+                         char-set-negate char-set-negate)
 {:tag :irregular.char-sets/char-set,
  :multi-byte true,
- :ranges
- [{:tag :irregular.char-sets/char-range, :multi-byte false, :upper 25, :lower 0}
-  {:tag :irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}]}
+ :ranges [{:tag :irregular.char-sets/char-range,
+           :multi-byte false, :upper 25, :lower 0}
+          {:tag :irregular.char-sets/char-range,
+           :multi-byte true, :upper 150, :lower 50}]}
 ```
 
 There exists a preliminary regex -> AST analyzer which is at least sufficient for analyzing Java
