@@ -1,4 +1,4 @@
-(defproject /blather "0.0.0-SNAPSHOT"
+(defproject me.arrdem/blather "0.0.0-SNAPSHOT"
   :description "Blather - a toolkit for manipulating BNF variants."
   :url "http://github.com/arrdem/blather"
   :license {:name "Eclipse Public License"
