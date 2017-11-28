@@ -1,8 +1,8 @@
-(ns me.arrdem.irregular.combinators
+(ns irregular.combinators
   "Character set (or more!) combiantors."
   (:refer-clojure :exclude [cat])
   (:require [clojure.string :refer [join]]
-            [me.arrdem.irregular.char :as char]))
+            [irregular.char :as char]))
 
 ;; Concatenation
 ;;----------------------------------------

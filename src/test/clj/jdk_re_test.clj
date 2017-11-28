@@ -1,6 +1,6 @@
-(ns me.arrdem.jdk-re-test
+(ns jdk-re-test
   (:require [clojure.test :as t]
-            [me.arrdem.irregular.jdk-re :refer [parse]]))
+            [.irregular.jdk-re :refer [parse]]))
 
 (t/deftest test-char-parses
   (t/is (= [:pattern
@@ -54,5 +54,3 @@
   (t/is (parse "[a-z]"))
   (t/is (parse "[A-Za-z]"))
   (t/is (parse "[a&&[b]&&[^c]]")))
-
-

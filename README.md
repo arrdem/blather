@@ -31,15 +31,15 @@ Blather provides a toolkit for writing precisely such transformations.
 - `[9/10]` Parse Lark grammars into an AST
 - `[4/16]` Design an intermediate 'common' representation for BNF operational semantics
   - `[9/10]` Design and implement an abstract representation of regular expressions. Regex dialects
-    differ, need to be able to convert between them. Escape codes vary, support for quantifiers,
-    etc. Note that regular expressions fully subset BNF, and so it's possible to generate states and
-    rewrite pretty much any regular expression into any BNF dialect which also features
-    quantifiers. This usually isn't desired but is possible.
+	differ, need to be able to convert between them. Escape codes vary, support for quantifiers,
+	etc. Note that regular expressions fully subset BNF, and so it's possible to generate states and
+	rewrite pretty much any regular expression into any BNF dialect which also features
+	quantifiers. This usually isn't desired but is possible.
   - `[0/3]` Figure out what to do with string literals. They're a special case of regexes that only
-    match one string. Some dialects (RFC 5234) impose restrictions on what characters can occur
-    within a string literal.
+	match one string. Some dialects (RFC 5234) impose restrictions on what characters can occur
+	within a string literal.
   - `[0/3]` Figure out what to do with byte literals. Again a special case of regex usually used in
-    lieu of escape sequences.
+	lieu of escape sequences.
 
 ## What Works
 
@@ -47,25 +47,25 @@ Character sets, the basis for regular expressions, exist and satisfy some basic 
 
 ```clj
 ;; The inverse of the inverse of a character set is the original character set
-me.arrdem.irregular.char-sets> (char-set-negate (char-set-negate (char-range 50 150)))
-{:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
+irregular.char-sets> (char-set-negate (char-set-negate (char-range 50 150)))
+{:tag :irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
 ;; The union of a set with a subset is the source set
-me.arrdem.irregular.char-sets> (char-set-union (char-range 50 150) (char-range 50 100))
-{:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
+irregular.char-sets> (char-set-union (char-range 50 150) (char-range 50 100))
+{:tag :irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
 ;; The union of two disjoint sets is a new set
-me.arrdem.irregular.char-sets> (char-set-union (char-range 50 150) (char-range 0 25))
-{:tag :me.arrdem.irregular.char-sets/char-set,
+irregular.char-sets> (char-set-union (char-range 50 150) (char-range 0 25))
+{:tag :irregular.char-sets/char-set,
  :multi-byte true,
  :ranges
- [{:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
-  {:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte false, :upper 25, :lower 0}]}
+ [{:tag :irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}
+  {:tag :irregular.char-sets/char-range, :multi-byte false, :upper 25, :lower 0}]}
 ;; Negation round-tripping works on character sets not just ranges
-me.arrdem.irregular.char-sets> (char-set-negate (char-set-negate (char-set-union (char-range 50 150) (char-range 0 25))))
-{:tag :me.arrdem.irregular.char-sets/char-set,
+irregular.char-sets> (char-set-negate (char-set-negate (char-set-union (char-range 50 150) (char-range 0 25))))
+{:tag :irregular.char-sets/char-set,
  :multi-byte true,
  :ranges
- [{:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte false, :upper 25, :lower 0}
-  {:tag :me.arrdem.irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}]}
+ [{:tag :irregular.char-sets/char-range, :multi-byte false, :upper 25, :lower 0}
+  {:tag :irregular.char-sets/char-range, :multi-byte true, :upper 150, :lower 50}]}
 ```
 
 There exists a preliminary regex -> AST analyzer which is at least sufficient for analyzing Java
@@ -73,32 +73,32 @@ style regexes. It's definitely sufficient for analyzing POSIX regular expression
 implemented quite yet.
 
 ```clj
-me.arrdem.irregular.jdk-re> (parse "a++[a-z&&[^ac]]*?c?")
-{:tag :me.arrdem.irregular.combinators/cat,
+irregular.jdk-re> (parse "a++[a-z&&[^ac]]*?c?")
+{:tag :irregular.combinators/cat,
  :multi-byte false,
- :pattern1 {:tag :me.arrdem.irregular.combinators/rep-n+,
-            :behavior :me.arrdem.irregular.combinators/possessive,
-            :multi-byte false, :count 1,
-            :pattern {:tag :me.arrdem.irregular.char-sets/char-range,
-                      :multi-byte false, :upper 97, :lower 97}},
- :pattern2 {:tag :me.arrdem.irregular.combinators/cat,
-            :multi-byte false,
-            :pattern1 {:tag :me.arrdem.irregular.combinators/rep-n+,
-                       :behavior :me.arrdem.irregular.combinators/reluctant,
-                       :multi-byte nil,
-                       :pattern {:tag :me.arrdem.irregular.char-sets/char-set,
-                                 :multi-byte false,
-                                 :ranges [{:tag :me.arrdem.irregular.char-sets/char-range,
-                                           :multi-byte false, :upper 122, :lower 100}
-                                          {:tag :me.arrdem.irregular.char-sets/char-range,
-                                           :multi-byte false, :upper 98, :lower 98}]},
-                       :count 1},
-            :pattern2 {:tag :me.arrdem.irregular.combinators/rep-nm,
-                       :behavior :me.arrdem.irregular.combinators/greedy,
-                       :multi-byte false, :min 0, :max 1,
-                       :pattern {:tag :me.arrdem.irregular.char-sets/char-range,
-                                 :multi-byte false,
-                                 :upper 99, :lower 99}}}}
+ :pattern1 {:tag :irregular.combinators/rep-n+,
+			:behavior :irregular.combinators/possessive,
+			:multi-byte false, :count 1,
+			:pattern {:tag :irregular.char-sets/char-range,
+					  :multi-byte false, :upper 97, :lower 97}},
+ :pattern2 {:tag :irregular.combinators/cat,
+			:multi-byte false,
+			:pattern1 {:tag :irregular.combinators/rep-n+,
+					   :behavior :irregular.combinators/reluctant,
+					   :multi-byte nil,
+					   :pattern {:tag :irregular.char-sets/char-set,
+								 :multi-byte false,
+								 :ranges [{:tag :irregular.char-sets/char-range,
+										   :multi-byte false, :upper 122, :lower 100}
+										  {:tag :irregular.char-sets/char-range,
+										   :multi-byte false, :upper 98, :lower 98}]},
+					   :count 1},
+			:pattern2 {:tag :irregular.combinators/rep-nm,
+					   :behavior :irregular.combinators/greedy,
+					   :multi-byte false, :min 0, :max 1,
+					   :pattern {:tag :irregular.char-sets/char-range,
+								 :multi-byte false,
+								 :upper 99, :lower 99}}}}
 ```
 
 There is as of yet no regex AST simplification engine. When alternation occurs, we should attempt to
@@ -116,9 +116,9 @@ A preliminary compiler from my JDK RE internal representation back to a valid JD
 and works well enough to be dangerous.
 
 ```clj
-me.arrdem.irregular.jdk-re> (compile (parse "a++[a-z&&[^ac]]*?c?"))
+irregular.jdk-re> (compile (parse "a++[a-z&&[^ac]]*?c?"))
 #"a++[[d-z]b]+?c?"
-me.arrdem.irregular.jdk-re> (emit (parse "a++[a-z&&[^ac]]*?c?"))
+irregular.jdk-re> (emit (parse "a++[a-z&&[^ac]]*?c?"))
 a++[[d-z]b]+?c?
 ```
 
@@ -126,32 +126,32 @@ BNF dialects totally parse (that wasn't hard). They don't yet however generate a
 AST representation beyond their dialect specific syntax tree.
 
 ```clj
-me.arrdem.blather.rfc5234> (parse (slurp (clojure.java.io/file "etc/rfc5234.txt")))
+blather.rfc5234> (parse (slurp (clojure.java.io/file "etc/rfc5234.txt")))
 [:rulelist
  [:addition
   [:rulename "rulelist"]
   [:elements
    [:alternation
-    [:concatenation
-     [:repetition
-      [:repeat [:n-or-more [:DIGIT "1"] "*"]]
-      [:element
-       [:group
-        "("
-        [:alternation
-         [:concatenation [:repetition [:element [:rulename "rule"]]]]
-         [:alternation
-          [:concatenation
-           [:repetition
-            [:element
-             [:group
-              "("
-              [:alternation
-               [:concatenation
-                [:repetition [:repeat [:zero-or-more "*"]] [:element [:rulename "c-wsp"]]]
-                [:repetition [:element [:rulename "c-nl"]]]]]
-              ")"]]]]]]
-        ")"]]]]]]]
+	[:concatenation
+	 [:repetition
+	  [:repeat [:n-or-more [:DIGIT "1"] "*"]]
+	  [:element
+	   [:group
+		"("
+		[:alternation
+		 [:concatenation [:repetition [:element [:rulename "rule"]]]]
+		 [:alternation
+		  [:concatenation
+		   [:repetition
+			[:element
+			 [:group
+			  "("
+			  [:alternation
+			   [:concatenation
+				[:repetition [:repeat [:zero-or-more "*"]] [:element [:rulename "c-wsp"]]]
+				[:repetition [:element [:rulename "c-nl"]]]]]
+			  ")"]]]]]]
+		")"]]]]]]]
  ...
  ]
 ```

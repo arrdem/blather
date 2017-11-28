@@ -1,7 +1,8 @@
-(ns me.arrdem.irregular.char-sets
+(ns irregular.char-sets
   "Possibly unicode character sets as [upper, ... lower] pairs & operators thereon."
-  (:require [me.arrdem.irregular :as i]
-            [me.arrdem.irregular.char :as char]))
+  (:refer-clojure :exclude [char])
+  (:require [irregular :as i]
+            [irregular.char :as char]))
 
 ;; We're gonna support all character values, being positive integers between `0` and
 ;; `Character/MAX_CODE_POINT`. A character set then is a set of characters which we'll allow to
@@ -12,7 +13,7 @@
 ;; which will match.
 (defn char-range
   "Implementation detail of character sets.
-  o
+
   Defines a character range with an upper and lower bound.
 
   The bounds may be equal if only one char is matched."
@@ -72,11 +73,7 @@
 
           (<= l-lower (inc r-upper))
           ;; Ranges are continuous, possibly overlapping. Build a bigger range.
-          {:tag        ::char-range
-           :multi-byte (or (char/multibyte? l-upper)
-                           (char/multibyte? r-lower))
-           :upper      l-upper
-           :lower      r-lower}
+          (char-range l-upper r-lower)
 
           (> l-lower r-upper)
           ;; L and R are disjoint, non-continuous. Build a set.
@@ -97,17 +94,17 @@
 (def EMPTY-CHAR-SET
   {:tag ::char-set :multi-byte false :ranges []})
 
-(defn char-set* [range-or-set]
+(defn as-ranges [range-or-set]
   (case (:tag range-or-set)
     (::char-range) [range-or-set]
-    (::char-set)   (mapcat char-set* (:ranges range-or-set))
+    (::char-set)   (mapcat as-ranges (:ranges range-or-set))
     (throw (IllegalStateException. (str range-or-set)))))
 
 (defn char-set-union
   "Recursively converts a list of character ranges and/or sets to a single new character set."
   [& ranges-and-sets]
   {:pre [(every? #(#{::char-range ::char-set} (:tag %)) ranges-and-sets)]}
-  (->> (mapcat char-set* ranges-and-sets)
+  (->> (mapcat as-ranges ranges-and-sets)
        (sort-by :lower)
        (sort-by :upper)
        (reduce (fn
@@ -125,7 +122,7 @@
                     ;;
                     ;; If we started with ranges and got a range, we take the resulting range.
                     ;; If we started with a range and we got a set, we take the resulting set.
-                    ;; If we started with a set and we got a new set back, we 
+                    ;; If we started with a set and we got a new set back, we
                     (let [a*  (case (:tag a)
                                 ::char-range a
                                 ::char-set   (last (:ranges a)))
@@ -205,7 +202,7 @@
   [{:keys [ranges] :as l} r]
   (let [new-ranges (->> ranges
                         (map #(char-range-difference* % r))
-                        (mapcat char-set*)
+                        (mapcat as-ranges)
                         (sort-by :lower)
                         (sort-by :upper)
                         vec)]
@@ -217,7 +214,7 @@
   "Subtracts a number of character ranges & character sets from the left character range or set."
   [l & ranges-and-sets]
   {:pre [(every? #(#{::char-range ::char-set} (:tag %)) ranges-and-sets)]}
-  (->> (mapcat char-set* ranges-and-sets)
+  (->> (mapcat as-ranges ranges-and-sets)
        (sort-by :lower)
        (sort-by :upper)
        (reduce (fn
@@ -239,7 +236,7 @@
 (defn char-set-negate
   "Returns the character set which matches everything the given character set (or range) rejects"
   [range-or-set]
-  (apply char-set-difference* ANY-CHAR-RANGE (char-set* range-or-set)))
+  (apply char-set-difference* ANY-CHAR-RANGE (as-ranges range-or-set)))
 
 (defn char-range-intersection
   "Implementation detail.
@@ -287,8 +284,8 @@
   ;; resulting overlapping ranges together. Union is a monoid, so we don't have to special case
   ;; repetition or anything else and we're order insensitive. We just do more work than strictly
   ;; required. It's fine, cores are fast.
-  (->> (for [l     (char-set* l)
-             r     (mapcat char-set* ranges-and-sets) 
+  (->> (for [l     (as-ranges l)
+             r     (mapcat as-ranges ranges-and-sets)
              :let  [i (char-range-intersection l r)]
              :when (not= i EMPTY-CHAR-SET)]
          i)

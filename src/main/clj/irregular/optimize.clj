@@ -1,13 +1,13 @@
-(ns me.arrdem.irregular.optimize
+(ns irregular.optimize
   "Regex pattern minimization(s)."
-  (:require [me.arrdem.irregular.imp :refer [tag-dx]]
-            [me.arrdem.irregular.char-sets :as chars]
-            [me.arrdem.irregular.combinators :as comb]))
+  (:require [irregular.imp :refer [tag-dx]]
+            [irregular.char-sets :as chars]
+            [irregular.combinators :as comb]))
 
 ;; Alt really is the thing that simplifies.
 ;;
 ;; Cat only simplifies when its components (or some prefix thereof) simplify.
-;; 
+;;
 ;; Groups explicitly prevent simplification.
 
 (defn optimize

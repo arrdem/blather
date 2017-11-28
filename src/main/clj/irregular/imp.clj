@@ -1,4 +1,5 @@
-(ns me.arrdem.irregular.imp)
+(ns irregular.imp
+  "Implementation bits and bats.")
 
 (defn tag-dx [tagged-or-raw]
   (cond (map? tagged-or-raw)
@@ -10,4 +11,3 @@
 
         :else
         :default))
-

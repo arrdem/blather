@@ -1,9 +1,9 @@
-(ns me.arrdem.irregular.jdk-re
+(ns irregular.jdk-re
   "Compiles an irregular regex IR down to a JDK legal regex string."
   (:require [clojure.java.io :refer [resource]]
-            [me.arrdem.irregular.imp :as i :refer [tag-dx]]
-            [me.arrdem.irregular.combinators :as c]
-            [me.arrdem.irregular.char-sets :as s]
+            [irregular.imp :as i :refer [tag-dx]]
+            [irregular.combinators :as c]
+            [irregular.char-sets :as s]
             [instaparse.core :refer [parser transform]]))
 
 ;; Parsing JDK regex patterns

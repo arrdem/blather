@@ -1,13 +1,14 @@
-(ns me.arrdem.blather.rfc5234
+(ns blather.rfc5234
   "A Blather dialect for ABNF as specified in RFC5234.
 
   RFC7405 updates RFC5234 adding explicit support for case-sensitivity."
   (:refer-clojure :exclude [str])
   (:require [clojure.java.io :refer [resource]]
-            [me.arrdem.blather.grammars :as g]
-            [me.arrdem.irregular.combinators :as c]
-            [me.arrdem.irregular.char-sets :as cs]
-            [me.arrdem.irregular.imp :refer [tag-dx]]
+            [clojure.core.match :refer [match]]
+            [blather.grammars :as g]
+            [irregular.combinators :as c]
+            [irregular.char-sets :as cs]
+            [irregular.imp :refer [tag-dx]]
             [instaparse.core :refer [parser transform]]))
 
 (def -parser
@@ -52,7 +53,7 @@
    :elements identity
    :element  identity
    :DIGIT    identity
-   
+
    ;; Parsing terminals
    :num-val identity
    :hex     (-parse-with-base 16 -num-transformers)
@@ -63,7 +64,7 @@
    :char-val  -parse-char
 
    :rulename g/rule
-   
+
    ;; Parsing combinators
    :repeat          identity
    :repetition      (fn
@@ -103,72 +104,3 @@
   [text-or-resource]
   (->> (-parser text-or-resource)
        (transform -transformer)))
-
-
-(defn set? [node]
-  (#{ ::cs/char-range ::cs/char-set} (:tag node)))
-
-(defn range? [node]
-  [{:keys [upper lower] :as charset}]
-  (= upper lower))
-
-(defn range-as-char
-  [range]
-  {:pre [(range-could-be-char? range)]}
-  (char (:lower range)))
-
-(defn str? [{:keys [tag]}]
-  (= tag ::str))
-
-(defn str
-  "Intermediate node representing a character sequence. Produced when simplifying grammars."
-  [& strs-and-chars]
-  {:tag     ::str
-   :pattern (->> strs-and-chars
-                 (mapcat (fn [str-or-char]
-                           (cond (str? str-or-char)
-                                 (recur (:pattern str-or-char))
-
-                                 (instance? Character str-or-char)
-                                 [str-or-char]
-
-                                 (instance? String str-or-char)
-                                 (seq str-or-char))))
-                 (apply clojure.core/str))})
-
-(defmulti simplify*
-  "Case analysis of various single step simplifications."
-  tag-dx)
-
-(defmethod simplify* ::c/cat [{:keys [pattern1 pattern2] :as n}]
-  (cond (not (and (range? pattern1)
-                  (range-could-be-char? pattern1)))
-        n
-
-        (and (range? pattern2)
-             (set-could-be-char? pattern2))
-        (str (range-as-char pattern1) (range-as-char pattern2))
-
-
-        (str? pattern2)
-        (str (range-as-char pattern1) pattern2)
-
-        :else n))
-
-(defmethod simplify* :default [node]
-  node)
-
-(defn simplify
-  "Attempts to simplify some interesting cases of the grammar."
-  [tree]
-  (let [do-simplify (fn [tree]
-                      (->> tree
-                           (map (fn [[rulename pattern]]
-                                  (prn pattern)
-                                  [rulename (simplify* pattern)]))
-                           (into {})))]
-    (loop [tree₀ nil
-           tree₁ tree]
-      (if-not (= tree₀ tree₁)
-        (recur tree₁ (do-simplify tree₁))
-        tree₁))))

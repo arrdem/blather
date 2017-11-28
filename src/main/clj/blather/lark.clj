@@ -1,11 +1,11 @@
-(ns me.arrdem.blather.lark
+(ns blather.lark
   (:require [instaparse.core :refer [parser transform]]
             [clojure.java.io :refer [resource]]))
 
 (def -parser
   "The Instaparse parser used to read Lark."
   (parser (slurp (resource "lark.insta"))
-          :start :grammar 
+          :start :grammar
           :auto-whitespace :standard))
 
 (defn just-subtree [subtree]

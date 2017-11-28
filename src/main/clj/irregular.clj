@@ -1,4 +1,4 @@
-(ns me.arrdem.irregular
+(ns irregular
   "Regular expressions.
 
   As data structures.
@@ -6,8 +6,8 @@
   It's a rite of passage I guess."
   (:refer-clojure :exclude [cat])
   (:require [clojure.string :refer [join]]
-            [me.arrdem.irregular.char :as char]
-            [me.arrdem.irregular.combinators :as comb]))
+            [irregular.char :as char]
+            [irregular.combinators :as comb]))
 
 ;; regexp elements:
 ;;
@@ -39,4 +39,4 @@
 ;; The most relevant answer in modernity perhaps is unicode code-points. A code-point is a muti-byte
 ;; encoding of an integer naming either a glyph, modifier or element of a glyph.
 ;;
-;; 
+;;

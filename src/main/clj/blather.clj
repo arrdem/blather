@@ -1,4 +1,4 @@
-(ns me.arrdem.blather
+(ns blather
   "The entry point for the Blather tool (if there ever is one)")
 
 (defn -main [& args]

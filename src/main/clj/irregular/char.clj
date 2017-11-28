@@ -1,5 +1,5 @@
-(ns me.arrdem.irregular.char
-  (:require [me.arrdem.irregular.imp :refer [tag-dx]]))
+(ns irregular.char
+  (:require [irregular.imp :refer [tag-dx]]))
 
 (defmulti multibyte?
   "Determines whether a given value requires multibyte pattern matching."

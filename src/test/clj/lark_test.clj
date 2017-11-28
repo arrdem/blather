@@ -1,7 +1,7 @@
-(ns me.arrdem.lark-test
+(ns lark-test
   (:require [clojure.java.io :as io]
             [clojure.test :refer [deftest testing]]
-            [me.arrdem.blather.lark :refer [parse]]))
+            [blather.lark :refer [parse]]))
 
 (deftest test-calc-parses
   (testing "Parse the calc grammar."
