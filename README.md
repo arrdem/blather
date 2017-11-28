@@ -31,15 +31,15 @@ Blather provides a toolkit for writing precisely such transformations.
 - `[9/10]` Parse Lark grammars into an AST
 - `[4/16]` Design an intermediate 'common' representation for BNF operational semantics
   - `[9/10]` Design and implement an abstract representation of regular expressions. Regex dialects
-	differ, need to be able to convert between them. Escape codes vary, support for quantifiers,
-	etc. Note that regular expressions fully subset BNF, and so it's possible to generate states and
-	rewrite pretty much any regular expression into any BNF dialect which also features
-	quantifiers. This usually isn't desired but is possible.
+    differ, need to be able to convert between them. Escape codes vary, support for quantifiers,
+    etc. Note that regular expressions fully subset BNF, and so it's possible to generate states and
+    rewrite pretty much any regular expression into any BNF dialect which also features
+    quantifiers. This usually isn't desired but is possible.
   - `[0/3]` Figure out what to do with string literals. They're a special case of regexes that only
-	match one string. Some dialects (RFC 5234) impose restrictions on what characters can occur
-	within a string literal.
+    match one string. Some dialects (RFC 5234) impose restrictions on what characters can occur
+    within a string literal.
   - `[0/3]` Figure out what to do with byte literals. Again a special case of regex usually used in
-	lieu of escape sequences.
+    lieu of escape sequences.
 
 ## What Works
 
@@ -77,28 +77,28 @@ irregular.jdk-re> (parse "a++[a-z&&[^ac]]*?c?")
 {:tag :irregular.combinators/cat,
  :multi-byte false,
  :pattern1 {:tag :irregular.combinators/rep-n+,
-			:behavior :irregular.combinators/possessive,
-			:multi-byte false, :count 1,
-			:pattern {:tag :irregular.char-sets/char-range,
-					  :multi-byte false, :upper 97, :lower 97}},
+            :behavior :irregular.combinators/possessive,
+            :multi-byte false, :count 1,
+            :pattern {:tag :irregular.char-sets/char-range,
+                      :multi-byte false, :upper 97, :lower 97}},
  :pattern2 {:tag :irregular.combinators/cat,
-			:multi-byte false,
-			:pattern1 {:tag :irregular.combinators/rep-n+,
-					   :behavior :irregular.combinators/reluctant,
-					   :multi-byte nil,
-					   :pattern {:tag :irregular.char-sets/char-set,
-								 :multi-byte false,
-								 :ranges [{:tag :irregular.char-sets/char-range,
-										   :multi-byte false, :upper 122, :lower 100}
-										  {:tag :irregular.char-sets/char-range,
-										   :multi-byte false, :upper 98, :lower 98}]},
-					   :count 1},
-			:pattern2 {:tag :irregular.combinators/rep-nm,
-					   :behavior :irregular.combinators/greedy,
-					   :multi-byte false, :min 0, :max 1,
-					   :pattern {:tag :irregular.char-sets/char-range,
-								 :multi-byte false,
-								 :upper 99, :lower 99}}}}
+            :multi-byte false,
+            :pattern1 {:tag :irregular.combinators/rep-n+,
+                       :behavior :irregular.combinators/reluctant,
+                       :multi-byte nil,
+                       :pattern {:tag :irregular.char-sets/char-set,
+                                 :multi-byte false,
+                                 :ranges [{:tag :irregular.char-sets/char-range,
+                                           :multi-byte false, :upper 122, :lower 100}
+                                          {:tag :irregular.char-sets/char-range,
+                                           :multi-byte false, :upper 98, :lower 98}]},
+                       :count 1},
+            :pattern2 {:tag :irregular.combinators/rep-nm,
+                       :behavior :irregular.combinators/greedy,
+                       :multi-byte false, :min 0, :max 1,
+                       :pattern {:tag :irregular.char-sets/char-range,
+                                 :multi-byte false,
+                                 :upper 99, :lower 99}}}}
 ```
 
 There is as of yet no regex AST simplification engine. When alternation occurs, we should attempt to
@@ -132,26 +132,26 @@ blather.rfc5234> (parse (slurp (clojure.java.io/file "etc/rfc5234.txt")))
   [:rulename "rulelist"]
   [:elements
    [:alternation
-	[:concatenation
-	 [:repetition
-	  [:repeat [:n-or-more [:DIGIT "1"] "*"]]
-	  [:element
-	   [:group
-		"("
-		[:alternation
-		 [:concatenation [:repetition [:element [:rulename "rule"]]]]
-		 [:alternation
-		  [:concatenation
-		   [:repetition
-			[:element
-			 [:group
-			  "("
-			  [:alternation
-			   [:concatenation
-				[:repetition [:repeat [:zero-or-more "*"]] [:element [:rulename "c-wsp"]]]
-				[:repetition [:element [:rulename "c-nl"]]]]]
-			  ")"]]]]]]
-		")"]]]]]]]
+    [:concatenation
+     [:repetition
+      [:repeat [:n-or-more [:DIGIT "1"] "*"]]
+      [:element
+       [:group
+        "("
+        [:alternation
+         [:concatenation [:repetition [:element [:rulename "rule"]]]]
+         [:alternation
+          [:concatenation
+           [:repetition
+            [:element
+             [:group
+              "("
+              [:alternation
+               [:concatenation
+                [:repetition [:repeat [:zero-or-more "*"]] [:element [:rulename "c-wsp"]]]
+                [:repetition [:element [:rulename "c-nl"]]]]]
+              ")"]]]]]]
+        ")"]]]]]]]
  ...
  ]
 ```
