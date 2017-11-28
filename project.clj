@@ -6,7 +6,7 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/core.match "LATEST"]
                  [instaparse/instaparse "1.4.8"]
-                 [/guten-tag "LATEST"]]
+                 [me.arrdem/guten-tag "LATEST"]]
   :source-paths ["src/main/clj"]
   :resource-paths ["src/main/resources"]
   :test-paths ["src/test/clj" "src/test/resources"]
