@@ -242,7 +242,7 @@
     (format "[%s-%s]" (-render lower) (-render upper))))
 
 (defmethod -render ::s/char-set [{:keys [ranges]}]
-  (let [ranges (mapcat s/char-set* ranges)]
+  (let [ranges (mapcat s/as-ranges ranges)]
     (->> ranges
          (map -render)
          (apply str)

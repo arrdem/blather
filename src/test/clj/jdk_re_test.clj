@@ -1,56 +1,34 @@
 (ns jdk-re-test
   (:require [clojure.test :as t]
-            [.irregular.jdk-re :refer [parse]]))
+            [irregular.jdk-re
+             :refer [-parser]
+             :rename {-parser parser}]
+            [instaparse.core :refer [parse]]))
+
+(defn do-parse [text]
+  (parse parser text))
 
 (t/deftest test-char-parses
-  (t/is (= [:pattern
-            [:simple-character "a"]]
-           (parse "a")))
-
-  (t/is (= [:pattern
-            [:escaped-character
-             [:special-character "{"]]]
-           (parse "\\{")))
-
-  (t/is (= [:pattern
-            [:escaped-character
-             [:special-character "."]]]
-           (parse "\\.")))
-
-  (t/is (= [:pattern
-            [:escaped-character
-             [:named-character "n"]]]
-           (parse "\\n")))
-
-  (t/is (= [:pattern
-            [:escaped-character
-             [:codepoint
-              [:hex-codepoint "5555"]]]]
-           (parse "\\x5555")))
-
-  (t/is (= [:pattern
-            [:escaped-character
-             [:codepoint
-              [:octal-codepoint "333"]]]]
-           (parse "\\0333"))))
+  (t/is (do-parse "a"))
+  (t/is (do-parse "\\{"))
+  (t/is (do-parse "\\."))
+  (t/is (do-parse "\\n"))
+  (t/is (do-parse "\\x5555"))
+  (t/is (do-parse "\\0333")))
 
 (t/deftest test-cat-parses
-  (t/is (= [:pattern
-            [:concatenation
-             [:simple-character "a"]
-             [:simple-character "b"]]]
-           (parse "ab")))
+  (t/is (do-parse "ab"))
+  (t/is (do-parse "abc")))
 
-  (t/is (= [:pattern
-            [:concatenation
-             [:simple-character "a"]
-             [:concatenation
-              [:simple-character "b"]
-              [:simple-character "c"]]]]
-           (parse "abc"))))
+(t/deftest test-alt-parses
+  (t/is (do-parse "a|b"))
+  (t/is (do-parse "a|b|c|d")))
+
+(t/deftest test-group-parses
+  (t/is (do-parse "a(b|c)")))
 
 (t/deftest test-charset-parses
-  (t/is (parse "[a]"))
-  (t/is (parse "[a-z]"))
-  (t/is (parse "[A-Za-z]"))
-  (t/is (parse "[a&&[b]&&[^c]]")))
+  (t/is (do-parse "[a]"))
+  (t/is (do-parse "[a-z]"))
+  (t/is (do-parse "[A-Za-z]"))
+  (t/is (do-parse "[a&&[b]&&[^c]]")))
