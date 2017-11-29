@@ -1,9 +1,147 @@
 (ns irregular.char-sets
-  "Possibly unicode character sets as [upper, ... lower] pairs & operators thereon."
+  "An abstraction representing sets of characters.
+
+  Character sets may occur as a range of values in an
+  encoding (Unicode is the only supported coding), as a union of
+  disjoint components or as relations on sets."
   (:refer-clojure :exclude [char])
   (:require [irregular :as i]
-            [irregular.char :as char]))
+            [irregular.char :as char]
+            [irregular.imp :refer [pairwise-dx]]))
 
+;; The primary API
+;;--------------------------------------------------------------------------------------------------
+
+;; Union
+;;------------------------------------------------
+(defmulti union*
+  "Extension point.
+
+  Implements union between a pair of character set values of possibly
+  different types.
+
+  Note to the implementer: Most character set structures cannot be
+  unioned to concrete values. Consequently, the default behavior for
+  this method should be to produce a union structure such as
+
+    {:tag ::union
+     :terms #{...}}
+
+  The union of unions is the union (possibly but not necessarily
+  simplified), and for some specific representations unions within the
+  representation may reduce."
+  pairwise-dx)
+
+(defn ->union
+  "Raw union structure constructor. `#'union` should probably be preferred."
+  [& terms]
+  {:tag ::union :terms (set terms)})
+
+(defn union?
+  "Predicate. True iff the given structure is a union of sets."
+  [{:keys [tag]}]
+  (= tag ::union))
+
+(defn union
+  "Union on character sets.
+
+  This method should be preferred to `#'union*` in client code.
+
+  By default, produces an empty union structure."
+  [& sets]
+  (reduce union* (->union) sets))
+
+;; Intersection
+;;------------------------------------------------
+(defmulti intersection*
+  "Extension point
+
+  Implements intersection between character set values of possibly
+  different types.
+
+  Note to the implementer: Most character set structures cannot be
+  intersected by value. Consequently, the default behavior for this
+  function should be to produce a symbolic intersection structure such
+  as
+
+    {:tag ::intersection
+     :a   <term>
+     :bs  #{<term>}}
+
+  Note that a set is usable since intersection is order-independent."
+  pairwise-dx)
+
+(defn ->intersection
+  "Raw intersection structure constructor. `#'intersection` should probably be preferred."
+  [a & bs]
+  {:tag ::intersection
+   :a   a
+   :bs  (set bs)})
+
+(defn intersection?
+  "Predicate. True iff the given structure is an intersection of sets."
+  [{:keys [tag]}]
+  (= tag ::intersection))
+
+(defn intersection
+  "Intersection on character sets.
+
+  This method should be preferred to `#'intersection*` in client
+  code."
+  [set & sets]
+  (reduce intersection* set sets))
+
+(defmulti intersects?
+  "Predicate. Extension point.
+
+  Returns `true` if and only if the two argument structures can be
+  determined to intersect. If there is not a trivial intersection,
+  returns `false`.
+
+  Note to the implementer: False negatives are acceptable. False
+  positives are not."
+  pairwise-dx)
+
+;; Subtraction
+;;------------------------------------------------
+(defmulti subtraction*
+  "Extension point.
+
+  Implements subtraction between character set types.
+
+  Note to the implementer: Most character set structures cannot be
+  subtracted by value. Consequently, the default behavior for this
+  function should be to produce a symbolic structure such as
+
+    {:tag ::subtraction
+     :a   <term>
+     :bs  #{<term>}}
+
+  Where :a is the value to be subtracted from, and :bs is the values
+  to subtract."
+  pairwise-dx)
+
+(defn ->subtraction
+  "Raw intersection structure constructor. `#'intersection` should probably be preferred."
+  [a & bs]
+  {:tag ::subtraction
+   :a   a
+   :bs  (set bs)})
+
+(defn intersection?
+  "Predicate. True iff the given structure is an intersection of sets."
+  [{:keys [tag]}]
+  (= tag ::intersection))
+
+(defn subtraction
+  "Subtraction on character sets.
+
+  This method should be preferred to `#'subtraction*` in client code."
+  [set & sets]
+  (reduce subtraction* set sets))
+
+;; Particular structure implementations
+;;--------------------------------------------------------------------------------------------------
 ;; We're gonna support all character values, being positive integers between `0` and
 ;; `Character/MAX_CODE_POINT`. A character set then is a set of characters which we'll allow to
 ;; match at a given terminal. The traditional encoding is lists of ranges (or singletons), which
@@ -12,30 +150,35 @@
 ;; What we want to use (or emit) then is the most compact set representation for all characters
 ;; which will match.
 (defn char-range
-  "Implementation detail of character sets.
+  "The most fundamental kind of a character set - a range of values.
 
-  Defines a character range with an upper and lower bound.
-
-  The bounds may be equal if only one char is matched."
+  All characters must be in the UTF-8 range."
   [lower upper]
   {:pre [(or (integer? lower) (char? lower))
          (or (integer? upper) (char? upper))]}
   (let [upper* (max (int upper) (int lower))
         lower* (min (int upper) (int lower))]
+    (assert (>= lower 0))
+    (assert (<= upper Character/MAX_CODE_POINT))
     {:tag        ::char-range
      :multi-byte (or (char/multibyte? upper)
                      (char/multibyte? lower))
      :upper      upper*
      :lower      lower*}))
 
-(defmethod char/multibyte? ::char-range [{:keys [upper lower]}]
-  (or (char/multibyte? upper)
+(defmethod char/multibyte? ::char-range [{:keys [upper lower multi-byte]}]
+  (or multi-byte
+      (char/multibyte? upper)
       (char/multibyte? lower)))
 
 (defn char
   "Alias for `(char-range c c)`. Defines a character range which only matches one thing."
   [c]
   (char-range c c))
+
+;; -------------------------------------------------------------------------------------------------
+;; OLD CODE HERE
+;; -------------------------------------------------------------------------------------------------
 
 (defn char-range-union
   "Implementation detail.
@@ -90,9 +233,6 @@
 
 (defmethod char/multibyte? ::char-set [{:keys [ranges]}]
   (some char/multibyte? ranges))
-
-(def EMPTY-CHAR-SET
-  {:tag ::char-set :multi-byte false :ranges []})
 
 (defn as-ranges [range-or-set]
   (case (:tag range-or-set)
