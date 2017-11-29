@@ -1,9 +1,11 @@
 (ns irregular.jdk-re
   "Compiles an irregular regex IR down to a JDK legal regex string."
+  (:refer-clojure :exclude [compile])
   (:require [clojure.java.io :refer [resource]]
             [irregular.imp :as i :refer [tag-dx]]
             [irregular.combinators :as c]
             [irregular.char-sets :as s]
+            [irregular.common :as m]
             [instaparse.core :refer [parser transform]]))
 
 ;; Parsing JDK regex patterns
@@ -144,77 +146,54 @@
                (apply xform cls1 (map s/as-character-class clss))))
            cls clauses)))
 
-(defn parse-repetition
-  "Accepts a structure of the form
-
-  [:repetition <expr> <quantifier>]
-
-  And computes the repetition combinator normal form of the
-  repetition."
-  [expr quantifier])
-
 (def -transformer
   "Map from node IDs to node transformer functions.
 
   Note that nodes cannot be deleted by returning nil when transforming them."
-  {:pattern           identity
-   :atom              s/as-character-class
-   :escaped-character identity
+  (merge
+   m/recursive-alt
+   m/recursive-concat
+   m/shorthand-repetition
+   m/bounded-repetition
+   m/unbounded-repetition
+   {;; Wrappers, drop 'em
+    :character             identity
+    :codepoint             identity
+    :repetition            identity
+    :named-character-class identity
+    :pattern               identity
+    :escaped-character     identity
 
-   ;; Simplify some terms with optionals
-   :concatenation (fn
-                    ([x] x)
-                    ([x y] (c/cat x y)))
-   :alternation   (fn
-                    ([x] x)
-                    ([x y] (c/alt x y)))
+    ;; An atom is either already a character class, or it is a raw char. Normalize.
+    :atom s/as-character-class
 
-   ;; Deal with converting character classes & their components to irregular's character sets
+    ;;----------------------------------------
+    ;; Decode characters from their representations
+    :hex-codepoint    (fn [s] (Long/parseLong s 16))
+    :octal-codepoint  (fn [s] (Long/parseLong s 8))
+    :simple-character first
 
-   ;;----------------------------------------
-   ;; Decode characters from their representations
-   :hex-codepoint    (fn [s] (Long/parseLong s 16))
-   :octal-codepoint  (fn [s] (Long/parseLong s 8))
-   :simple-character first
+    :positive-named-character-class parse-named-character-class
+    :negative-named-character-class (fn [name]
+                                      (s/char-set-difference s/ANY-CHAR-RANGE
+                                                             (parse-named-character-class name)))
 
-   ;; Wrappers, drop 'em
-   :character             identity
-   :codepoint             identity
-   :repetition            identity
-   :named-character-class identity
+    :character-range          s/char-range
+    :negative-character-class (fn [& clss]
+                                (->> (map s/as-character-class clss)
+                                     (apply s/char-set-difference s/ANY-CHAR-RANGE)))
+    :character-class          parse-character-class
+    :positive-character-class (fn [& chars-or-ranges]
+                                (->> chars-or-ranges
+                                     (map s/as-character-class)
+                                     (apply s/char-set-union)))
 
-   :positive-named-character-class parse-named-character-class
-   :negative-named-character-class (fn [name]
-                                     (s/char-set-difference s/ANY-CHAR-RANGE
-                                                            (parse-named-character-class name)))
-
-   :character-range          s/char-range
-   :negative-character-class (fn [& clss]
-                               (->> (map s/as-character-class clss)
-                                    (apply s/char-set-difference s/ANY-CHAR-RANGE)))
-   :character-class          parse-character-class
-   :positive-character-class (fn [& chars-or-ranges]
-                               (->> chars-or-ranges
-                                    (map s/as-character-class)
-                                    (apply s/char-set-union)))
-
-   ;; Repetition
-   ;;----------------------------------------
-   :simple-repetition     identity
-   :possessive-repetition c/possessive
-   :relucant-repetition   c/reluctant
-   :shorthand-repetition  (fn [e shorthand]
-                            (({"*" c/rep*
-                               "?" c/rep?
-                               "+" c/rep+} shorthand)
-                             e))
-   :bounded-repetition    (fn
-                            ([e lower-limit]
-                             (c/rep-n e (Long/parseLong lower-limit)))
-                            ([e lower-limit upper-limit]
-                             (c/rep-nm e (Long/parseLong lower-limit) (Long/parseLong upper-limit))))
-   :unbounded-repetition  (fn [e lower-limit]
-                            (c/rep-n+ e (Long/parseLong lower-limit)))})
+    ;; Repetition
+    ;;----------------------------------------
+    :simple-repetition     identity
+    :possessive-repetition c/possessive
+    :relucant-repetition   c/reluctant
+    }))
 
 (defn parse
   "Consumes a resource, parsing it as a RFC5234 structured text, and generating an analyzed FSM"

@@ -1,0 +1,47 @@
+(* POSIX compliant BRE "Basic" Regular Rxpressions.
+   Derived largely from the Java Pattern implementation due to similarity.
+*)
+
+any-character = "."
+
+simple-character = #"[^\\]"
+
+special-character = #"[\[\]\.1-9]"
+
+escaped-character = <"\\"> special-character
+
+character = escaped-character | simple-character
+
+character-range = character <"-"> character
+
+equivalence-character-class = <"[="> #"[^=]+" <"=]">
+
+named-character-class = <"[:"> #"[^:]+" <":]">
+
+coalation-class = <"[."> #"[^.]+" <".]">
+
+positive-character-class = ( coalation-class / named-character-class / equivalence-character-class / character-range / character ) +
+
+negative-character-class = <"^"> positive-character-class
+
+simple-character-class = <"["> ( negative-character-class / positive-character-class ) <"]">
+
+character-class = named-character-class / simple-character-class
+
+star-repetition = atom <"*">
+
+bounded-repetition = atom ( <"\\{"> #"\d+" ( <","> #"\d+" ) ? <"\\}"> )
+
+unbounded-repetition = atom ( <"\\{"> #"\d+" <","> <"\\}"> )
+
+parenthetical = <"\\("> alternation <"\\)">
+
+atom = any-character | character-class | character | parenthetical
+
+repetition = unbounded-repetition / bounded-repetition / star-repetition / atom
+
+concatenation = repetition concatenation ?
+
+alternation = concatenation ( <"|"> alternation ) ?
+
+pattern = "^" ? alternation "$" ?

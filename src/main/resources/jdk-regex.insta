@@ -59,7 +59,7 @@ relucant-repetition = simple-repetition <"?">
 
 repetition = possessive-repetition / relucant-repetition / simple-repetition / atom
 
-concatenation = ( repetition | atom ) concatenation ?
+concatenation = repetition concatenation ?
 
 alternation = concatenation ( <"|"> alternation ) ?
 
