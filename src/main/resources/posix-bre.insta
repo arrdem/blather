@@ -4,9 +4,9 @@
 
 any-character = "."
 
-simple-character = #"[^\\]"
+simple-character = #"[^\\\[\]]"
 
-special-character = #"[\[\]\.1-9]"
+special-character = #"[\[\]\.]"
 
 escaped-character = <"\\"> special-character
 
@@ -20,7 +20,7 @@ named-character-class = <"[:"> #"[^:]+" <":]">
 
 coalation-class = <"[."> #"[^.]+" <".]">
 
-positive-character-class = ( coalation-class / named-character-class / equivalence-character-class / character-range / character ) +
+positive-character-class = ( character-class / coalation-class / equivalence-character-class / character-range / character ) +
 
 negative-character-class = <"^"> positive-character-class
 
