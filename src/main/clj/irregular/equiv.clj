@@ -29,6 +29,9 @@
 (defmethod multibyte? ::equivalence [_]
   true)
 
+(defmethod score ::equivalence [_]
+  1)
+
 ;; Take the default union
 ;; Take the default intersection
 ;; Take the default subtraction

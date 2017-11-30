@@ -9,6 +9,9 @@
 (defmethod multibyte? ::character [i]
   (> (int i) 127))
 
+(defmethod score ::character [_]
+  1)
+
 (defmethod union* [::character ::character] [a b]
   (cond (= a b)                   a
         ;; Collapse consecutive characters into ranges

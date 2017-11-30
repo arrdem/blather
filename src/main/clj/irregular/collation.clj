@@ -27,6 +27,9 @@
 (defmethod multibyte? ::collation [_]
   true)
 
+(defmethod score ::collation [_]
+  1)
+
 ;; Take the default union
 ;; Take the default intersection
 ;; Take the default subtraction

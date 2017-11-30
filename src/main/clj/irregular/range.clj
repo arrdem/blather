@@ -42,6 +42,9 @@
   (or (multibyte? upper)
       (multibyte? lower)))
 
+(defmethod score ::range [_]
+  2)
+
 (defmethod union* [::range ::range] [l r]
   {:pre [;; Check tag and ordering invariants
          ;; for L
