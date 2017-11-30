@@ -1,4 +1,4 @@
-(ns blather.rfc5234
+(ns languages.rfc5234
   "A Blather dialect for ABNF as specified in RFC5234.
 
   RFC7405 updates RFC5234 adding explicit support for case-sensitivity."

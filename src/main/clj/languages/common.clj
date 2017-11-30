@@ -1,4 +1,4 @@
-(ns irregular.common
+(ns languages.common
   "Common transformer mappings & character sets."
   (:require [irregular.combinators :as c]))
 

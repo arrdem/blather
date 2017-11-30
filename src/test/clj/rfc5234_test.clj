@@ -1,7 +1,7 @@
 (ns rfc5234-test
   (:require [clojure.java.io :as io]
             [clojure.test :refer [deftest testing]]
-            [blather.rfc5234 :refer [parse]]))
+            [languages.rfc5234 :refer [parse]]))
 
 (deftest test-self-parses
   (testing "Tests that the RFC5234 parser can parse its own RFC5234 structured specification."

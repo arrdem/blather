@@ -1,11 +1,11 @@
-(ns irregular.jdk-re
+(ns languages.jdk-re
   "Compiles an irregular regex IR down to a JDK legal regex string."
   (:refer-clojure :exclude [compile])
   (:require [clojure.java.io :refer [resource]]
-            [irregular.imp :as i :refer [tag-dx]]
+            [irregular :as i :refer [tag-dx]]
             [irregular.combinators :as c]
             [irregular.char-sets :as s]
-            [irregular.common :as m]
+            [languages.common :as m]
             [instaparse.core :refer [parser transform]]))
 
 ;; Parsing JDK regex patterns

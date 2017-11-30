@@ -1,2 +1,2 @@
-(ns irregular.posix
+(ns languages.posix
   "POSIX defined character sets.")

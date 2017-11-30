@@ -2,7 +2,7 @@
   "Character set (or more!) combiantors."
   (:refer-clojure :exclude [cat])
   (:require [clojure.string :refer [join]]
-            [irregular.char :as char]))
+            [irregular :refer [h multibyte?]]))
 
 ;; Concatenation
 ;;----------------------------------------
@@ -12,14 +12,14 @@
   Returns a pattern which matches the left first, and then the right."
   [pattern1 pattern2]
   {:tag        ::cat
-   :multi-byte (or (char/multibyte? pattern1)
-                   (char/multibyte? pattern2))
+   :multi-byte (or (multibyte? pattern1)
+                   (multibyte? pattern2))
    :pattern1   pattern1
    :pattern2   pattern2})
 
-(defmethod char/multibyte? ::cat [{:keys [pattern1 pattern2]}]
-  (or (char/multibyte? pattern1)
-      (char/multibyte? pattern2)))
+(defmethod multibyte? ::cat [{:keys [pattern1 pattern2]}]
+  (or (multibyte? pattern1)
+      (multibyte? pattern2)))
 
 ;; Alternation
 ;;----------------------------------------
@@ -31,14 +31,14 @@
   May also be thought of as union between patterns."
   [pattern1 pattern2]
   {:tag        ::alt
-   :multi-byte (or (char/multibyte? pattern1)
-                   (char/multibyte? pattern2))
+   :multi-byte (or (multibyte? pattern1)
+                   (multibyte? pattern2))
    :pattern1   pattern1
    :pattern2   pattern2})
 
-(defmethod char/multibyte? ::alt [{:keys [pattern1 pattern2]}]
-  (or (char/multibyte? pattern1)
-      (char/multibyte? pattern2)))
+(defmethod multibyte? ::alt [{:keys [pattern1 pattern2]}]
+  (or (multibyte? pattern1)
+      (multibyte? pattern2)))
 
 (defn cut
   "Ordered alternation of patterns.
@@ -50,14 +50,14 @@
   prevents backtracking & enforces an evaluation order."
   [pattern1 pattern2]
   {:tag        ::cut
-   :multi-byte (or (char/multibyte? pattern1)
-                   (char/multibyte? pattern2))
+   :multi-byte (or (multibyte? pattern1)
+                   (multibyte? pattern2))
    :pattern1   pattern1
    :pattern2   pattern2})
 
-(defmethod char/multibyte? ::cut [{:keys [pattern1 pattern2]}]
-  (or (char/multibyte? pattern1)
-      (char/multibyte? pattern2)))
+(defmethod multibyte? ::cut [{:keys [pattern1 pattern2]}]
+  (or (multibyte? pattern1)
+      (multibyte? pattern2)))
 
 ;; Grouping
 ;;----------------------------------------
@@ -67,22 +67,22 @@
   Used lexically for concatenations to be terminated."
   [pattern]
   {:tag        ::group
-   :multi-byte (char/multibyte? pattern)
+   :multi-byte (multibyte? pattern)
    :pattern    pattern})
 
-(defmethod char/multibyte? ::group [{:keys [pattern]}]
-  (char/multibyte? pattern))
+(defmethod multibyte? ::group [{:keys [pattern]}]
+  (multibyte? pattern))
 
 (defn named-group
   "A regular expression which captures to a named \"register\"."
   [name pattern]
   {:tag        ::named-group
    :name       name
-   :multi-byte (char/multibyte? pattern)
+   :multi-byte (multibyte? pattern)
    :pattern    pattern})
 
-(defmethod char/multibyte? ::named-group [{:keys [pattern]}]
-  (char/multibyte? pattern))
+(defmethod multibyte? ::named-group [{:keys [pattern]}]
+  (multibyte? pattern))
 
 ;; Eagerness
 ;;----------------------------------------
@@ -99,7 +99,7 @@
    {:pre [(behavior? behavior)]}
    {:tag        ::rep-n
     :behavior   behavior
-    :multi-byte (char/multibyte? pattern)
+    :multi-byte (multibyte? pattern)
     :pattern    pattern
     :count      count}))
 
@@ -111,7 +111,7 @@
    {:pre [(behavior? behavior)]}
    {:tag        ::rep-n+
     :behavior   behavior
-    :multi-byte (char/multibyte? pattern)
+    :multi-byte (multibyte? pattern)
     :pattern    pattern
     :count      count}))
 
@@ -123,7 +123,7 @@
    {:pre [(behavior? behavior)]}
    {:tag        ::rep-nm
     :behavior   behavior
-    :multi-byte (char/multibyte? pattern)
+    :multi-byte (multibyte? pattern)
     :pattern    pattern
     :min        min
     :max        max}))

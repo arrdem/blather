@@ -1,10 +1,8 @@
-(ns irregular.posix-bre
+(ns languages.posix-bre
   "POSIX Basic Regular Expressions (BRE) parsing & emitting."
   (:require [clojure.java.io :refer [resource]]
-            [irregular.imp :as i :refer [tag-dx]]
+            [irregular :refer [tag-dx]]
             [irregular.combinators :as c]
-            [irregular.char-sets :as s]
-            [irregular.common :as m]
             [instaparse.core :refer [parser transform]]))
 
 ;; Parsing BRE patterns

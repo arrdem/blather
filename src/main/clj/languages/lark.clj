@@ -1,4 +1,4 @@
-(ns blather.lark
+(ns languages.lark
   (:require [instaparse.core :refer [parser transform]]
             [clojure.java.io :refer [resource]]))
 
