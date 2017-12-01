@@ -13,15 +13,17 @@
 
 (t/deftest test-binary-op-api-completeness
   (let [methods [#'i/union #'i/intersection #'i/intersects? #'i/subtraction]]
-    (doseq [m methods
-            a examples
-            b examples]
-      (t/testing (format "Testing method %s - %s %s" m a b)
-        (t/is (do (m a b) true))))))
+    (doseq [m methods]
+      (t/testing (format "Testing method %s" m)
+        (doseq [a examples
+                b examples]
+          (t/testing (format "Testing example (%s %s)" a b)
+            (t/is (do (m a b) true))))))))
 
 (t/deftest test-unary-op-api-completeness
   (let [methods [#'i/score #'i/multibyte?]]
-    (doseq [m methods
-            a examples]
-      (t/testing (format "Testing method %s - %s" m a)
-        (t/is (do (m a) true))))))
+    (doseq [m methods]
+      (t/testing (format "Testing method %s" m)
+        (doseq [a examples]
+          (t/testing (format "Testing example %s" a)
+            (t/is (do (m a) true))))))))
