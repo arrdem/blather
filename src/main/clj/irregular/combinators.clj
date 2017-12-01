@@ -2,7 +2,7 @@
   "Character set (or more!) combiantors."
   (:refer-clojure :exclude [cat])
   (:require [clojure.string :refer [join]]
-            [irregular :refer [h multibyte?]]))
+            [irregular.core :refer [h multibyte?]]))
 
 ;; Concatenation
 ;;----------------------------------------
@@ -103,6 +103,9 @@
     :pattern    pattern
     :count      count}))
 
+(defmethod multibyte? ::rep-n [{:keys [pattern]}]
+  (multibyte? pattern))
+
 (defn rep-n+
   "A repetition of N or more."
   ([pattern count]
@@ -114,6 +117,9 @@
     :multi-byte (multibyte? pattern)
     :pattern    pattern
     :count      count}))
+
+(defmethod multibyte? ::rep-n+ [{:keys [pattern]}]
+  (multibyte? pattern))
 
 (defn rep-nm
   "A repetition of N to M occurrences"
@@ -127,6 +133,9 @@
     :pattern    pattern
     :min        min
     :max        max}))
+
+(defmethod multibyte? ::rep-nm [{:keys [pattern]}]
+  (multibyte? pattern))
 
 (defn rep+
   "Helper, repetition of 1 or more."

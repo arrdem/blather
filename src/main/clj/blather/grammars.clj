@@ -1,6 +1,7 @@
 (ns blather.grammars
   "The internal representation of a Blather grammar."
-  (:refer-clojure :exclude [str]))
+  (:refer-clojure :exclude [str])
+  (:require [irregular.core :refer [multibyte?]]))
 
 ;; A grammar AST node for rule names
 ;;--------------------------------------------------------------------------------
@@ -15,6 +16,9 @@
   [{:keys [tag]}]
   (= tag ::rule))
 
+;; We can't statically determine this, so assume the negative.
+(defmethod multibyte? ::rule [a]
+  false)
 
 ;; A grammar AST node for literal strings
 ;;--------------------------------------------------------------------------------
