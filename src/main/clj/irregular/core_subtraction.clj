@@ -44,7 +44,7 @@
   (let [{a* :minuend b* :subtrahends} a
         {c* :minuend d* :subtrahends} b]
     (->subtraction (intersection a* c*)
-                   (union {:tag ::union :terms b*} {:tag ::union :terms d*}))))
+                   (apply union (concat (seq b*) (seq d*))))))
 
 (defmethod intersection* [::subtraction ::not-empty] [a b]
   (let [{:keys [minuend subtrahends]} a]

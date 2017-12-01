@@ -123,7 +123,7 @@
           (cge l-upper (cinc r-upper) (cdec r-lower) l-lower)
           ;; R is completely within L
           (->union
-           (->range (cinc r-upper) l-upper )
+           (->range (cinc r-upper) l-upper)
            (->range l-lower (cdec r-lower)))
 
           :else

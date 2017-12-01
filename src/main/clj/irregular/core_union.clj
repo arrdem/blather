@@ -33,7 +33,7 @@
 
 ;; In the case of taking a union with a union, try to simplify.
 (defmethod union* [::union ::union] [a b]
-  (apply union (concat (:terms a) (:terms b))))
+  (apply union (concat (seq (:terms a)) (seq (:terms b)))))
 
 (defmethod-commutative union* [::not-empty ::union] [a b]
   (let [{:keys [terms]} b]
@@ -42,7 +42,7 @@
            discards       []]
       (if-not term
         ;; Default behavior
-        (->union union a (:terms b))
+        (apply ->union a (:terms b))
         (let [candidate (union a term)]
           (if-not (union? candidate)
             ;; We were able to find a simplification somehow!
@@ -71,7 +71,7 @@
   (apply union (remove (:terms b) (:terms a))))
 
 (defmethod subtraction* [::union ::not-empty] [a b]
-  (apply union (disj (:terms a) b)))
+  (apply ->union (map #(subtraction % b) (:terms a))))
 
 (defmethod subtraction* [::not-empty ::union] [a b]
   (apply subtraction a (:terms b)))
