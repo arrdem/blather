@@ -4,7 +4,7 @@
   As data structures.
 
   It's a rite of passage I guess."
-  (:refer-clojure :exclude [empty?]))
+  (:refer-clojure :exclude [empty? class?]))
 
 (defn tag-dx
   "Dispatch by :tag, :type, :ingeger for chars and ints,
@@ -194,5 +194,6 @@
 (load "core_intersection")
 (load "core_equiv")
 (load "core_collation")
+(load "core_class")
 (load "core_char")
 (load "core_range")
