@@ -2,7 +2,7 @@
 ;; IT IS A CODE FRAGMENT
 ;;
 ;; This is loaded as part of the irregular namespace
-(in-ns 'irregular)
+(in-ns 'irregular.core)
 
 (derive! #'h ::collation ::not-empty)
 

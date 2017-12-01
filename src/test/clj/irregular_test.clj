@@ -1,6 +1,6 @@
-(ns test-irregular
+(ns irregular-test
   (:require [clojure.test :as t]
-            [irregular :as i]))
+            [irregular.core :as i]))
 
 (def examples
   [(i/->empty)

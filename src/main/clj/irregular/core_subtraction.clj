@@ -2,7 +2,7 @@
 ;; IT IS A CODE FRAGMENT
 ;;
 ;; This is loaded as part of the irregular namespace
-(in-ns 'irregular)
+(in-ns 'irregular.core)
 
 (derive! #'h ::subtraction ::not-empty)
 
@@ -41,10 +41,11 @@
        (not (some (partial intersects? b) subtrahends))))
 
 (defmethod intersection* [::subtraction ::subtraction] [a b]
-  (let [{a :minuend b :subtrahends} a
-        {c :minuend d :subtrahends} b]
-    (->subtraction (intersection a c) (union c d))))
+  (let [{a* :minuend b* :subtrahends} a
+        {c* :minuend d* :subtrahends} b]
+    (->subtraction (intersection a* c*)
+                   (union {:tag ::union :terms b*} {:tag ::union :terms d*}))))
 
-(defmethod-commutative intersection* [::subtraction ::not-empty] [a b]
+(defmethod intersection* [::subtraction ::not-empty] [a b]
   (let [{:keys [minuend subtrahends]} a]
     (apply subtraction (intersection minuend b) subtrahends)))

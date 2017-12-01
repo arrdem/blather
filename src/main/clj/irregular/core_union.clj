@@ -2,7 +2,7 @@
 ;; IT IS A CODE FRAGMENT
 ;;
 ;; This is loaded as part of the irregular namespace
-(in-ns 'irregular)
+(in-ns 'irregular.core)
 (require 'clojure.set)
 
 (derive! #'h ::union ::not-empty)
@@ -55,7 +55,7 @@
 (defmethod intersection* [::union ::union] [a b]
   (apply union (clojure.set/intersection (:terms a) (:terms b))))
 
-(defmethod-commutative intersection* [::union ::not-empty] [a b]
+(defmethod intersection* [::union ::not-empty] [a b]
   (->> (map (partial intersection* b) (:terms a))
        (apply union)))
 
@@ -63,7 +63,7 @@
 (defmethod intersects? [::union ::union] [a b]
   (boolean (some (:terms a) (:terms b))))
 
-(defmethod-commutative intersects? [::union ::not-empty] [a b]
+(defmethod intersects? [::union ::not-empty] [a b]
   (boolean (some (partial intersects? b) (:terms a))))
 
 ;; Subtraction is a bit tricky

@@ -2,7 +2,7 @@
   "Compiles an irregular regex IR down to a JDK legal regex string."
   (:refer-clojure :exclude [compile])
   (:require [clojure.java.io :refer [resource]]
-            [irregular :as i :refer [tag-dx]]
+            [irregular.core :as i :refer [tag-dx]]
             [irregular.combinators :as c]
             [irregular.char-sets :as s]
             [languages.common :as m]

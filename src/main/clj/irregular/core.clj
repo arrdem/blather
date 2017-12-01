@@ -1,4 +1,4 @@
-(ns irregular
+(ns irregular.core
   "Regular expressions.
 
   As data structures.
@@ -188,11 +188,11 @@
 ;; Load up the fragmented implementation because multimethods are imperative.
 ;;--------------------------------------------------------------------------------------------------
 
-(load "irregular/empty")
-(load "irregular/union")
-(load "irregular/subtraction")
-(load "irregular/intersection")
-(load "irregular/equiv")
-(load "irregular/collation")
-(load "irregular/char")
-(load "irregular/range")
+(load "core_empty")
+(load "core_union")
+(load "core_subtraction")
+(load "core_intersection")
+(load "core_equiv")
+(load "core_collation")
+(load "core_char")
+(load "core_range")
