@@ -7,8 +7,7 @@
             [clojure.core.match :refer [match]]
             [blather.grammars :as g]
             [irregular.combinators :as c]
-            [irregular.char-sets :as cs]
-            [irregular.imp :refer [tag-dx]]
+            [irregular.core :as i]
             [instaparse.core :refer [parser transform]]))
 
 (def -parser
@@ -20,22 +19,16 @@
 
 (defn -parse-with-base [base dx]
   (fn [e]
-    (let [[tag a b] e]
+    (let [[tag a b] e
+          f         #(char (Long/parseLong % base))]
       (case (count e)
-        (2) ((dx tag)
-             (Long/parseLong a base))
-        (3) ((dx tag)
-             (Long/parseLong a base)
-             (Long/parseLong b base))))))
-
-(defn -char-cat [x y]
-  (c/cat (cs/as-character-class x)
-         (cs/as-character-class y)))
+        (2) ((dx tag) (f a))
+        (3) ((dx tag) (f a) (f b))))))
 
 (defn -case-insensitive-char-set-class [chr]
-  (cs/char-set-union
-   (cs/as-character-class (Character/toUpperCase chr))
-   (cs/as-character-class (Character/toLowerCase chr))))
+  (i/union
+   (Character/toUpperCase chr)
+   (Character/toLowerCase chr)))
 
 (defn -parse-char [text]
   (reduce c/cat
@@ -43,7 +36,7 @@
           (map -case-insensitive-char-set-class (reverse (butlast text)))))
 
 (def -num-transformers
-  {:range cs/char-range :pair -char-cat :val cs/as-character-class})
+  {:range i/->range :pair c/cat :val identity})
 
 (def -transformer
   "Map from node IDs to node transformer functions.

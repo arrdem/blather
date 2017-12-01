@@ -1,6 +1,8 @@
 (ns languages.lark
-  (:require [instaparse.core :refer [parser transform]]
-            [clojure.java.io :refer [resource]]))
+  (:require [clojure.java.io :refer [resource]]
+            [irregular.combinators :as c]
+            [languages.common :as m]
+            [instaparse.core :refer [parser transform]]))
 
 (def -parser
   "The Instaparse parser used to read Lark."
@@ -8,37 +10,28 @@
           :start :grammar
           :auto-whitespace :standard))
 
-(defn just-subtree [subtree]
-  subtree)
-
 (def -transformer
   "Map from node IDs to node transformer functions.
 
   Note that nodes cannot be deleted by returning nil when transforming them."
-  {
-   ;; Intermediary states with no value and no source representation
-   :repeat   just-subtree
-   :terminal just-subtree
-   :element  just-subtree
+  (merge
+   m/recursive-alt
+   m/recursive-concat
+   {
+    ;; Intermediary states with no value and no source representation
+    :repeat   identity
+    :terminal identity
+    :element  identity
 
-   ;; Simplify one-armed chains
-   :alternation (fn
-                  ([l] l)
-                  ([l r] [:alternation l r]))
+    ;; Rewrite repetition as a prefix operation
+    :repetition (fn
+                  ([subtree] subtree)
+                  ([subtree quantifier] [quantifier subtree]))
 
-   :concatenation (fn
-                    ([t] t)
-                    ([t y & more] `[:concatenation ~t ~y ~@more]))
-
-   ;; Rewrite repetition as a prefix operation
-   :repetition (fn
-                 ([subtree] subtree)
-                 ([subtree quantifier] [quantifier subtree]))
-
-   :one-or-more  (fn [] :one-or-more)
-   :zero-or-more (fn [] :zero-or-more)
-   :zero-or-one  (fn [] :zero-or-one)
-   }
+    :one-or-more  (fn [] :one-or-more)
+    :zero-or-more (fn [] :zero-or-more)
+    :zero-or-one  (fn [] :zero-or-one)
+    })
   )
 
 (defn parse

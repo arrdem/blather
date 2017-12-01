@@ -1,8 +1,9 @@
 (ns languages.posix-bre
   "POSIX Basic Regular Expressions (BRE) parsing & emitting."
   (:require [clojure.java.io :refer [resource]]
-            [irregular :refer [tag-dx]]
+            [irregular.core :as i]
             [irregular.combinators :as c]
+            [languages.common :refer [ANY-UTF8]]
             [instaparse.core :refer [parser transform]]))
 
 ;; Parsing BRE patterns
@@ -10,16 +11,6 @@
   "The Instaparse parser used to read POSIX BREs."
   (parser (slurp (resource "posix-bre.insta"))
           :start :pattern))
-
-(defn as-char-set [char-or-set]
-  (if (instance? Character char-or-set)
-    (s/char char-or-set)
-    char-or-set))
-
-(defn -parse-char-class [& components]
-  (->> components
-       (map as-char-set)
-       (apply s/char-set-union)))
 
 (def -transformer
   (merge
@@ -58,8 +49,8 @@
 
     ;; Character classes are a little tricky because they have arithmetic & POSIX specific features.
     :character-range          s/char-range
-    :negative-character-class #(s/char-set-difference s/ANY-CHAR-RANGE %)
-    :positive-character-class -parse-char-class
+    :negative-character-class #(s/char-set-difference ANY-UTF8 %)
+    :positive-character-class i/union
     }))
 
 (defn parse

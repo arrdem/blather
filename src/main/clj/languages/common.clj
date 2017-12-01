@@ -1,6 +1,7 @@
 (ns languages.common
   "Common transformer mappings & character sets."
-  (:require [irregular.combinators :as c]))
+  (:require [irregular.core :as i]
+            [irregular.combinators :as c]))
 
 (defn d1x2 [f]
   (fn
@@ -57,3 +58,6 @@
   to combinators"
   {:unbounded-repetition (fn [e lower-limit]
                            (c/rep-n+ e (Long/parseLong lower-limit)))})
+
+(def ANY-UTF8
+  (i/->range \u0000 Character/MAX_VALUE))
