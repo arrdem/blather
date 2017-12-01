@@ -40,15 +40,21 @@
     (loop [a              a
            [term & terms] (seq terms)
            discards       []]
-      (if-not term
-        ;; Default behavior
+      (if (and (not term)
+               (not-empty discards))
+        ;; If we've discarded everything / something failed to reduce, do the dumb thing
         (apply ->union a (:terms b))
         (let [candidate (union a term)]
           (if-not (union? candidate)
-            ;; We were able to find a simplification somehow!
-            ;; Take it and give it a chance to reduce against everything else.
-            (recur candidate (concat discards terms) [])
-            ;; give the others a chance
+            ;; If we managed to reduce a term, run with the reduction!
+            (if (or (not-empty terms)
+                    (not-empty discards))
+              ;; We were able to find a simplification somehow!
+              ;; Take it and give it a chance to reduce against everything else.
+              (recur candidate (concat discards terms) [])
+              ;; That's it! We reduced everything down somehow!
+              candidate)
+            ;; That one failed to reduce, keep trying to reduce the other terms
             (recur a terms (conj discards term))))))))
 
 ;; Two unions intersect if their sets intersect.
