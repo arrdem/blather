@@ -1,7 +1,7 @@
 (ns lark-test
   (:require [clojure.java.io :as io]
             [clojure.test :refer [deftest testing]]
-            [blather.lark
+            [languages.lark
              :refer [-parser]
              :rename {-parser parser}]
             [instaparse.core :refer [parse]]))

@@ -1,6 +1,6 @@
 (ns jdk-re-test
   (:require [clojure.test :as t]
-            [irregular.jdk-re
+            [languages.jdk-re
              :refer [-parser]
              :rename {-parser parser}]
             [instaparse.core :refer [parse]]))
