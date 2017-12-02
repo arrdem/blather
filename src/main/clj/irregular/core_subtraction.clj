@@ -36,6 +36,26 @@
     (->subtraction a b)
     a))
 
+(defmethod subtraction* [::subtraction ::not-empty] [{:keys [minuend subtrahends] :as a} b]
+  (loop [minuend           minuend
+         [s & subtrahends] (cons b subtrahends)
+         discards          []]
+    (if (and (not s)
+             (not-empty discards))
+      (apply ->subtraction (:minuend a) b (:subtrahends a))
+      (let [candidate (subtraction minuend s)]
+        (if-not (subtraction? candidate)
+          ;; If we managed to reduce a term, run with the reduction!
+          (if (or (not-empty subtrahends)
+                  (not-empty discards))
+            ;; We were able to find a simplification somehow!
+            ;; Take it and give it a chance to reduce against everything else.
+            (recur candidate (concat discards subtrahends) [])
+            ;; That's it! We reduced everything down somehow!
+            candidate)
+          ;; That one failed to reduce, keep trying to reduce the other terms
+          (recur minuend subtrahends (conj discards s)))))))
+
 (defmethod intersects? [::subtraction ::not-empty] [{:keys [minuend subtrahends]} b]
   (and (intersects? minuend b)
        (not (some (partial intersects? b) subtrahends))))
