@@ -19,9 +19,6 @@
         (= (int a) (dec (int b))) (->range a b)
         :else                     (->union a b)))
 
-(defmethod-commutative union* [::character ::union] [a b]
-  (update b :terms conj a))
-
 (defmethod intersection* [::character ::character] [a b]
   (if (= a b) a
       (->union)))

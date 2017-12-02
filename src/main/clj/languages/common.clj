@@ -61,3 +61,7 @@
 
 (def ANY-UTF8
   (i/->range \u0000 Character/MAX_VALUE))
+
+(def ANY-ASCII
+  "ASCII character range."
+  (i/->range \u0000 \u007f))

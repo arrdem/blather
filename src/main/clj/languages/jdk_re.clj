@@ -5,6 +5,7 @@
             [irregular.core :as i :refer [tag-dx]]
             [irregular.combinators :as c]
             [languages.common :as m]
+            [detritus.bimap :refer [bimap]]
             [instaparse.core :refer [parser transform]]))
 
 ;; Parsing JDK regex patterns
@@ -47,10 +48,6 @@
    \_
    -digit))
 
-(def -ascii
-  "ASCII character range."
-  (i/->range \u0000 \u007f))
-
 (def -alnum
   "Alpha or numeral"
   (i/union -alpha -digit))
@@ -92,35 +89,36 @@
 
 (def -named-character-classes
   "Known \"standardized\" character classes and their names."
-  {"t" \tab
-   "n" \newline
-   "r" \return
-   "f" \formfeed
-   "a" \u0007
-   "e" \u001b
+  (bimap
+   {"t" \tab
+    "n" \newline
+    "r" \return
+    "f" \formfeed
+    "a" \u0007
+    "e" \u001b
 
-   ;; ASCII/POSIX character ranges
-   "s" -whitespace
-   "S" (i/subtraction -ascii -whitespace)
-   "w" -word
-   "W" (i/subtraction -ascii -word)
-   "d" -digit
-   "D" (i/subtraction -ascii -digit)
+    ;; ASCII/POSIX character ranges
+    "s" -whitespace
+    "S" (i/subtraction m/ANY-ASCII -whitespace)
+    "w" -word
+    "W" (i/subtraction m/ANY-ASCII -word)
+    "d" -digit
+    "D" (i/subtraction m/ANY-ASCII -digit)
 
-   ;; ASCII/POSIX character classes
-   "Lower"  -lower
-   "Upper"  -upper
-   "ASCII"  -ascii
-   "Alpha"  -alpha
-   "Digit"  -digit
-   "Alnum"  -alnum
-   "Punct"  -punct
-   "Graph"  -graph
-   "Print"  -print
-   "Blank"  -blank
-   "Cntrl"  -cntrl
-   "XDigit" -xdigit
-   "Space"  -space})
+    ;; ASCII/POSIX character classes
+    "Lower"  -lower
+    "Upper"  -upper
+    "ASCII"  m/ANY-ASCII
+    "Alpha"  -alpha
+    "Digit"  -digit
+    "Alnum"  -alnum
+    "Punct"  -punct
+    "Graph"  -graph
+    "Print"  -print
+    "Blank"  -blank
+    "Cntrl"  -cntrl
+    "XDigit" -xdigit
+    "Space"  -space}))
 
 (defn invert [& sets]
   (apply i/subtraction m/ANY-UTF8 sets))
