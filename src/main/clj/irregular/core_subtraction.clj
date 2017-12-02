@@ -31,7 +31,7 @@
 
 ;; FIXME: subtraction uses the DEFAULT implementation of union.
 
-(defmethod subtraction* [::any ::any] [a b]
+(defmethod subtraction* [::not-empty ::not-empty] [a b]
   (if (intersects? a b)
     (->subtraction a b)
     a))
