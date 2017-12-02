@@ -5,6 +5,7 @@
             [irregular.core :as i :refer [tag-dx]]
             [irregular.combinators :as c]
             [languages.common :as m]
+            [languages.ascii :as ascii]
             [detritus.bimap :refer [bimap]]
             [instaparse.core :refer [parser transform]]))
 
@@ -14,67 +15,13 @@
   (parser (slurp (resource "jdk-regex.insta"))
           :start :pattern))
 
-(def -whitespace
-  "Known \"standardized\" whitespace range `[ \\t\\n\\x0B\\f\\r]` per jdk8 Pattern"
-  (i/union
-   \space
-   \tab
-   \newline
-   \u000B ;; Vertical tab
-   \formfeed
-   \return))
-
-(def -lower
-  "Known \"standardized\" lower case range `[a-z]` per jdk8 Pattern"
-  (i/->range \a \z))
-
-(def -upper
-  "Known \"standardized\" upper case range `[A-Z]` per jdk8 Pattern"
-  (i/->range \A \Z))
-
-(def -alpha
-  "An alphabetic character `[\\p{Lower}\\p{Upper}]` per jdk8 Pattern"
-  (i/union -lower -upper))
-
-(def -digit
-  "Known \"standardized\" digit range `[0-9]` per jdk8 Pattern"
-  (i/->range \0 \9))
-
 (def -word
   "Known \"standardized\" word range `[a-zA-Z_0-9]` per jdk8 Pattern"
-  (i/union
-   -lower
-   -upper
-   \_
-   -digit))
+  (i/union ascii/lower ascii/upper \_ ascii/digit))
 
 (def -alnum
   "Alpha or numeral"
-  (i/union -alpha -digit))
-
-(def -punct
-  "Punctiation One of !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
-  (apply i/union "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"))
-
-(def -graph
-  "Any visible (ASCII) character"
-  (i/union -alnum -punct))
-
-(def -print
-  "Any printable character"
-  (i/union -graph \u0020))
-
-(def -blank
-  "`[ \\t]`"
-  (i/union
-   \tab
-   \space))
-
-(def -cntrl
-  "A control character"
-  (i/union
-   (i/->range \u0000 \u001f)
-   \u007f))
+  (i/union ascii/alpha ascii/digit))
 
 (def -xdigit
   "Any hexadecimal digit `[0-9a-zA-Z]`"
@@ -82,10 +29,6 @@
    (i/->range \0 \9)
    (i/->range \a \f)
    (i/->range \A \F)))
-
-(def -space
-  "A whitespace character `[ \\t\\n\\x0B\\f\\r]`"
-  (apply i/union "[ \t\n\u000B\f\r]"))
 
 (def -named-character-classes
   "Known \"standardized\" character classes and their names."
@@ -98,27 +41,27 @@
     "e" \u001b
 
     ;; ASCII/POSIX character ranges
-    "s" -whitespace
-    "S" (i/subtraction m/ANY-ASCII -whitespace)
+    "s" ascii/whitespace
+    "S" (i/subtraction m/ANY-ASCII ascii/whitespace)
     "w" -word
     "W" (i/subtraction m/ANY-ASCII -word)
-    "d" -digit
-    "D" (i/subtraction m/ANY-ASCII -digit)
+    "d" ascii/digit
+    "D" (i/subtraction m/ANY-ASCII ascii/digit)
 
     ;; ASCII/POSIX character classes
-    "Lower"  -lower
-    "Upper"  -upper
-    "ASCII"  m/ANY-ASCII
-    "Alpha"  -alpha
-    "Digit"  -digit
+    "Lower"  ascii/lower
+    "Upper"  ascii/upper
+    "ASCII"  ascii/any
+    "Alpha"  ascii/alpha
+    "Digit"  ascii/digit
     "Alnum"  -alnum
-    "Punct"  -punct
-    "Graph"  -graph
-    "Print"  -print
-    "Blank"  -blank
-    "Cntrl"  -cntrl
+    "Punct"  ascii/punct
+    "Graph"  ascii/graph
+    "Print"  ascii/print
+    "Blank"  ascii/blank
+    "Cntrl"  ascii/control
     "XDigit" -xdigit
-    "Space"  -space}))
+    "Space"  ascii/space}))
 
 (defn invert [& sets]
   (apply i/subtraction m/ANY-UTF8 sets))
