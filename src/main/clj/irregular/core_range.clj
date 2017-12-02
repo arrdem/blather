@@ -113,7 +113,7 @@
           (and (cge r-upper l-upper r-lower)
                (cge (cdec r-lower) l-lower))
           ;; 3) Some sub-range of L exists below R's lower bound
-          (->range (cdec r-lower) l-lower)
+          (->range l-lower (cdec r-lower))
 
           (and (cge l-upper r-upper l-lower)
                (cge l-lower r-lower))
