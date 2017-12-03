@@ -99,8 +99,8 @@
   This method should be preferred to `#'union*` in client code.
 
   By default, produces an empty union structure."
-  ([& sets]
-   (reduce union* (->empty) sets)))
+  [& sets]
+  (reduce union* (->empty) sets))
 
 ;; Intersection
 ;;------------------------------------------------
