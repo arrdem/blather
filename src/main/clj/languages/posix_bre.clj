@@ -3,7 +3,7 @@
   (:require [clojure.java.io :refer [resource]]
             [irregular.core :as i]
             [irregular.combinators :as c]
-            [languages.common :refer [ANY-UTF8]]
+            [languages.common :as m :refer [ANY-UTF8]]
             [instaparse.core :refer [parser transform]]))
 
 ;; Parsing BRE patterns
@@ -20,16 +20,13 @@
    m/bounded-repetition
    m/unbounded-repetition
    {;; Wrappers, drop 'em
+    :atom                   identity
     :repetition             identity
     :character-class        identity
     :pattern                identity
     :character              identity
     :escaped-character      identity
     :simple-character-class identity
-
-    ;; The contract is that any Atom must become a char set - so ensure that chars (which don't
-    ;; become sets for convenience elsewhere) get normalized to sets.
-    :atom as-char-set
 
     ;; Parentheticals become groups
     :parenthetical c/group
@@ -45,12 +42,15 @@
     :special-character first
 
     ;; . has special semantics and means literally any character
-    :any-character (fn [& _] s/ANY-CHAR-RANGE)
+    :any-character (fn [& _] ANY-UTF8)
 
     ;; Character classes are a little tricky because they have arithmetic & POSIX specific features.
-    :character-range          s/char-range
-    :negative-character-class #(s/char-set-difference ANY-UTF8 %)
-    :positive-character-class i/union
+    :character-range             i/->range
+    :negative-character-class    (partial i/subtraction ANY-UTF8)
+    :positive-character-class    i/union
+    :named-character-class       i/->class
+    :collation-class             i/->collation
+    :equivalence-character-class i/->equiv
     }))
 
 (defn parse

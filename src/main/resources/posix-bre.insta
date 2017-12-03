@@ -18,9 +18,9 @@ equivalence-character-class = <"[="> #"[^=]+" <"=]">
 
 named-character-class = <"[:"> #"[^:]+" <":]">
 
-coalation-class = <"[."> #"[^.]+" <".]">
+collation-class = <"[."> #"[^.]+" <".]">
 
-positive-character-class = ( character-class / coalation-class / equivalence-character-class / character-range / character ) +
+positive-character-class = ( collation-class / equivalence-character-class / character-class / character-range / character ) +
 
 negative-character-class = <"^"> positive-character-class
 
