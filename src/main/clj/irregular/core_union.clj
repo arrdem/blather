@@ -77,4 +77,7 @@
   (apply union (remove (:terms b) (:terms a))))
 
 (defmethod subtraction* [::union ::not-empty] [a b]
-  (apply ->union (map #(subtraction % b) (:terms a))))
+  (let [distribute (apply union (map #(subtraction % b) (:terms a)))
+        abstract   (->subtraction a b)]
+    (if (<= (score distribute) (score abstract))
+      distribute abstract)))
