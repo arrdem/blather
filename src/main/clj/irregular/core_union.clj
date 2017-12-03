@@ -78,6 +78,3 @@
 
 (defmethod subtraction* [::union ::not-empty] [a b]
   (apply ->union (map #(subtraction % b) (:terms a))))
-
-(defmethod subtraction* [::not-empty ::union] [a b]
-  (apply subtraction a (:terms b)))
