@@ -66,75 +66,17 @@
   "ASCII character range."
   (i/->range \u0000 \u007f))
 
-(def whitespace
-  "ASCII whitespace."
-  (i/union
-   \space
-   \tab
-   \newline
-   \u000B ;; Vertical tab
-   \formfeed
-   \return))
+(defn simplifier
+  "Function of a traversal function and a transformer function..
 
-(def -lower
-  "Known \"standardized\" lower case range `[a-z]` per jdk8 Pattern"
-  (i/->range \a \z))
-
-(def -upper
-  "Known \"standardized\" upper case range `[A-Z]` per jdk8 Pattern"
-  (i/->range \A \Z))
-
-(def -alpha
-  "An alphabetic character `[\\p{Lower}\\p{Upper}]` per jdk8 Pattern"
-  (i/union -lower -upper))
-
-(def -digit
-  "Known \"standardized\" digit range `[0-9]` per jdk8 Pattern"
-  (i/->range \0 \9))
-
-(def -word
-  "Known \"standardized\" word range `[a-zA-Z_0-9]` per jdk8 Pattern"
-  (i/union
-   -lower
-   -upper
-   \_
-   -digit))
-
-(def -alnum
-  "Alpha or numeral"
-  (i/union -alpha -digit))
-
-(def -punct
-  "Punctiation One of !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
-  (apply i/union "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"))
-
-(def -graph
-  "Any visible (ASCII) character"
-  (i/union -alnum -punct))
-
-(def -print
-  "Any printable character"
-  (i/union -graph \u0020))
-
-(def -blank
-  "`[ \\t]`"
-  (i/union
-   \tab
-   \space))
-
-(def -cntrl
-  "A control character"
-  (i/union
-   (i/->range \u0000 \u001f)
-   \u007f))
-
-(def -xdigit
-  "Any hexadecimal digit `[0-9a-zA-Z]`"
-  (i/union
-   (i/->range \0 \9)
-   (i/->range \a \f)
-   (i/->range \A \F)))
-
-(def -space
-  "A whitespace character `[ \\t\\n\\x0B\\f\\r]`"
-  (apply i/union "[ \t\n\u000B\f\r]"))
+  Builds and returns a recursive tree transformer, which will use the
+  supplied visitor (fmap) function to recursively visit the entire
+  tree, using the given transformer function to transform all the
+  nodes as if via fix."
+  [fmap transformer]
+  (fn transformer* [node]
+    (loop [node  node
+           node* (transformer (fmap transformer* node))]
+      (if-not (= node node*)
+        (recur node* (transformer (fmap transformer* node*)))
+        node*))))

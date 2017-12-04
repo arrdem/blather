@@ -29,8 +29,6 @@
   (or (multibyte? minuend)
       (some multibyte? subtrahends)))
 
-;; FIXME: subtraction uses the DEFAULT implementation of union.
-
 (defmethod subtraction* [::not-empty ::not-empty] [a b]
   (if (intersects? a b)
     (->subtraction a b)

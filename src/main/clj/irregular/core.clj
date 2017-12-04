@@ -69,6 +69,11 @@
   #'tag-dx
   :hierarchy #'h)
 
+(defmulti children
+  "For any given node, returns the sequence if its sub-terms."
+  #'tag-dx
+  :hierarchy #'h)
+
 ;; Forward declaration to help out writing the component fragments
 (declare ->empty ->union ->subtraction ->intersection ->range)
 

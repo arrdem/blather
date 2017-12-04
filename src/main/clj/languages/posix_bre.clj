@@ -2,6 +2,7 @@
   "POSIX Basic Regular Expressions (BRE) parsing & emitting."
   (:require [clojure.java.io :refer [resource]]
             [irregular.core :as i]
+            [clojure.zip :as z]
             [irregular.combinators :as c]
             [languages.common :as m :refer [ANY-UTF8]]
             [instaparse.core :refer [parser transform]]))
@@ -58,3 +59,13 @@
   [text-or-resource]
   (->> (-parser text-or-resource)
        (transform -transformer)))
+
+(defn simplify* [tree]
+  )
+
+(defn simplify [tree]
+  (loop [tree  tree
+         tree* (simplify* tree)]
+    (if-not (= tree tree*)
+      (recur tree*)
+      tree)))
