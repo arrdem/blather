@@ -17,6 +17,9 @@
         (char? tagged-or-raw)
         ::character
 
+        (string? tagged-or-raw)
+        ::string
+
         :default
         (type tagged-or-raw)))
 

@@ -74,9 +74,8 @@
   tree, using the given transformer function to transform all the
   nodes as if via fix."
   [fmap transformer]
-  (fn transformer* [node]
+  (fn recursive-transformer [node]
     (loop [node  node
-           node* (transformer (fmap transformer* node))]
-      (if-not (= node node*)
-        (recur node* (transformer (fmap transformer* node*)))
-        node*))))
+           node* (transformer (fmap recursive-transformer node))]
+      (if (= node node*) node*
+          (recur node* (transformer (fmap recursive-transformer node*)))))))

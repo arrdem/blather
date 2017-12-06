@@ -1,6 +1,7 @@
 (ns languages.posix-bre
   "POSIX Basic Regular Expressions (BRE) parsing & emitting."
   (:require [clojure.java.io :refer [resource]]
+            [clojure.core.match :refer [match]]
             [irregular.core :as i]
             [clojure.zip :as z]
             [irregular.combinators :as c]
@@ -60,12 +61,25 @@
   (->> (-parser text-or-resource)
        (transform -transformer)))
 
-(defn simplify* [tree]
-  )
+(defmethod i/multibyte? ::i/string [s]
+  (some i/multibyte? s))
 
-(defn simplify [tree]
-  (loop [tree  tree
-         tree* (simplify* tree)]
-    (if-not (= tree tree*)
-      (recur tree*)
-      tree)))
+(defn simplifier [tree]
+  (match tree
+    {:tag      ::c/cat
+     :pattern1 (:or (a :guard char?)
+                    (a :guard string?))
+     :pattern2 (:or (b :guard char?)
+                    (b :guard string?))}
+    ,,(str a b)
+
+    {:tag      ::c/cat
+     :pattern1 {:tag      ::c/cat
+                :pattern1 a
+                :pattern2 b}
+     :pattern2 c}
+    ,,(c/cat a (c/cat b c))
+
+    ;; Identity by default
+    :else
+    ,,tree))

@@ -2,7 +2,15 @@
   "Character set (or more!) combiantors."
   (:refer-clojure :exclude [cat])
   (:require [clojure.string :refer [join]]
-            [irregular.core :refer [h multibyte?]]))
+            [irregular.core :as i :refer [h multibyte? tag-dx]]))
+
+(defmulti fmap
+  "A fmap transformer for rewriting combinator trees."
+  (fn [_xf n]
+    (tag-dx n)))
+
+(defmethod fmap ::i/character [_xf n] n)
+(defmethod fmap ::i/string [_xf n] n)
 
 ;; Concatenation
 ;;----------------------------------------
@@ -20,6 +28,12 @@
 (defmethod multibyte? ::cat [{:keys [pattern1 pattern2]}]
   (or (multibyte? pattern1)
       (multibyte? pattern2)))
+
+(defmethod fmap ::cat [xform {:keys [pattern1 pattern2]}]
+  (let [pattern1* (xform pattern1)
+        pattern2* (xform pattern2)]
+    (if (and pattern1* pattern2*)
+      (cat pattern1* pattern2*))))
 
 ;; Alternation
 ;;----------------------------------------
@@ -40,6 +54,14 @@
   (or (multibyte? pattern1)
       (multibyte? pattern2)))
 
+(defmethod fmap ::alt [xform {:keys [pattern1 pattern2]}]
+  (let [pattern1* (xform pattern1)
+        pattern2* (xform pattern2)]
+    (if (and pattern1 pattern2)
+      (alt pattern1* pattern2*)
+      (or pattern1* pattern2*
+          nil))))
+
 (defn cut
   "Ordered alternation of patterns.
 
@@ -59,6 +81,14 @@
   (or (multibyte? pattern1)
       (multibyte? pattern2)))
 
+(defmethod fmap ::cut [xform {:keys [pattern1 pattern2]}]
+  (let [pattern1* (xform pattern1)
+        pattern2* (xform pattern2)]
+    (if (and pattern1* pattern2*)
+      (cut pattern1* pattern2*)
+      (or pattern1* pattern2*
+          nil))))
+
 ;; Grouping
 ;;----------------------------------------
 (defn group
@@ -73,6 +103,11 @@
 (defmethod multibyte? ::group [{:keys [pattern]}]
   (multibyte? pattern))
 
+(defmethod fmap ::group [xform {:keys [pattern]}]
+  (let [pattern* (xform pattern)]
+    (if pattern*
+      (group pattern*))))
+
 (defn named-group
   "A regular expression which captures to a named \"register\"."
   [name pattern]
@@ -83,6 +118,11 @@
 
 (defmethod multibyte? ::named-group [{:keys [pattern]}]
   (multibyte? pattern))
+
+(defmethod fmap ::named-group [xform {:keys [name pattern]}]
+  (let [pattern* (xform pattern)]
+    (if pattern*
+      (named-group name pattern*))))
 
 ;; Eagerness
 ;;----------------------------------------
@@ -106,6 +146,11 @@
 (defmethod multibyte? ::rep-n [{:keys [pattern]}]
   (multibyte? pattern))
 
+(defmethod fmap ::rep-n [xform {:keys [behavior pattern count]}]
+  (let [pattern* (xform pattern)]
+    (if pattern*
+      (rep-n behavior pattern* count))))
+
 (defn rep-n+
   "A repetition of N or more."
   ([pattern count]
@@ -120,6 +165,11 @@
 
 (defmethod multibyte? ::rep-n+ [{:keys [pattern]}]
   (multibyte? pattern))
+
+(defmethod fmap ::rep-n+ [xform {:keys [behavior pattern count]}]
+  (let [pattern* (xform pattern)]
+    (if pattern*
+      (rep-n behavior pattern* count))))
 
 (defn rep-nm
   "A repetition of N to M occurrences"
@@ -136,6 +186,11 @@
 
 (defmethod multibyte? ::rep-nm [{:keys [pattern]}]
   (multibyte? pattern))
+
+(defmethod fmap ::rep-nm [xform {:keys [behavior pattern min max]}]
+  (let [pattern* (xform pattern)]
+    (if pattern*
+      (rep-n behavior pattern* min max))))
 
 (defn rep+
   "Helper, repetition of 1 or more."
