@@ -30,9 +30,16 @@
       (some multibyte? subtrahends)))
 
 (defmethod subtraction* [::not-empty ::not-empty] [a b]
-  (if (intersects? a b)
-    (->subtraction a b)
-    a))
+  ;; FIXME (arrdem 2017-12-28):
+  ;;   Can we determine equality more generally?
+  (cond (= a b)
+        ,,(->empty)
+
+        (intersects? a b)
+        ,,(->subtraction a b)
+
+        :else
+        ,,a))
 
 (defmethod subtraction* [::subtraction ::not-empty] [{:keys [minuend subtrahends] :as a} b]
   (loop [minuend           minuend

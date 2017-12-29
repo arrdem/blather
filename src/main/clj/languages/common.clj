@@ -1,7 +1,8 @@
 (ns languages.common
   "Common transformer mappings & character sets."
   (:require [irregular.core :as i]
-            [irregular.combinators :as c]))
+            [irregular.combinators :as c]
+            [languages.ascii :as ascii]))
 
 (defn d1x2 [f]
   (fn

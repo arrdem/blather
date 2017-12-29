@@ -15,9 +15,9 @@ control-character = <"c"> simple-character
 named-character = #"[tnrfae]"
 (* tab, newline, return, form-feed, bell (alert), escape *)
 
-negative-named-character-class = <"P{"> #"[^\}]+" <"}">
+negative-named-character-class = <"P{"> #"[^\}]+" <"}"> | #"[WSD]"
 
-positive-named-character-class = <"p{"> #"[^\}]+" <"}">
+positive-named-character-class = <"p{"> #"[^\}]+" <"}"> | #"[wsd]"
 
 named-character-class = positive-named-character-class | negative-named-character-class
 
@@ -47,11 +47,11 @@ bounded-repetition = atom ( <"{"> #"\d+" ( <","> #"\d+" ) ? <"}"> )
 
 unbounded-repetition = atom ( <"{"> #"\d+" <","> <"}"> )
 
-parenthetical = <"("> alternation <")">
+parenthetical = <"("> (<"P<"> #"[^>]+" <">">) ? alternation <")">
 
 atom = character-class | character | parenthetical
 
-simple-repetition = unbounded-repetition / bounded-repetition / shorthand-repetition
+simple-repetition = ( unbounded-repetition / bounded-repetition / shorthand-repetition ) <"*"> ?
 
 possessive-repetition = simple-repetition <"+">
 
