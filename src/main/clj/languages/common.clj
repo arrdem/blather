@@ -79,3 +79,23 @@
            node* (transformer (fmap recursive-transformer node))]
       (if (= node node*) node*
           (recur node* (transformer (fmap recursive-transformer node*)))))))
+
+(defn pr-ch [e]
+  (let [v (int e)]
+    (if (or (Character/isAlphabetic v)
+            (Character/isDigit v)
+            (Character/isIdeographic v)) e
+        (if (>= v 0xFF)
+          (format "\\u%04d" v)
+          (format "\\u%02d" v)))))
+
+(def ^:dynamic *emitting-set* false)
+
+(defn maybe-set [^String e]
+  (if *emitting-set* e
+      (format "[%s]" e)))
+
+(defmacro charset [expr]
+  `(maybe-set
+    (binding [*emitting-set* true]
+      ~expr)))

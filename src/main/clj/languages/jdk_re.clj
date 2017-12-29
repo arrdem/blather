@@ -5,7 +5,7 @@
             [clojure.string :as string]
             [irregular.core :as i :refer [tag-dx]]
             [irregular.combinators :as c]
-            [languages.common :as m]
+            [languages.common :as m :refer [*emitting-set* maybe-set charset]]
             [languages.ascii :as ascii]
             [detritus.bimap :refer [bimap]]
             [instaparse.core :refer [parser transform]]))
@@ -170,17 +170,6 @@
 
 (defmethod -render [:default ::c/reluctant] [r]
   (str (-render (assoc r :behavior ::c/greedy)) "?"))
-
-(def ^:dynamic *emitting-set* false)
-
-(defn ^:private maybe-set [^String e]
-  (if *emitting-set* e
-      (format "[%s]" e)))
-
-(defmacro charset [expr]
-  `(maybe-set
-    (binding [*emitting-set* true]
-      ~expr)))
 
 (defmethod -render [::i/range :default] [{:keys [upper lower]}]
   (charset (format "%s-%s" (-render lower) (-render upper))))
