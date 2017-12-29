@@ -2,6 +2,7 @@
   "Compiles an irregular regex IR down to a JDK legal regex string."
   (:refer-clojure :exclude [compile])
   (:require [clojure.java.io :refer [resource]]
+            [clojure.string :as string]
             [irregular.core :as i :refer [tag-dx]]
             [irregular.combinators :as c]
             [languages.common :as m]
@@ -32,36 +33,35 @@
 
 (def -named-character-classes
   "Known \"standardized\" character classes and their names."
-  (bimap
-   {"t" \tab
-    "n" \newline
-    "r" \return
-    "f" \formfeed
-    "a" \u0007
-    "e" \u001b
+  {"t" \tab
+   "n" \newline
+   "r" \return
+   "f" \formfeed
+   "a" \u0007
+   "e" \u001b
 
-    ;; ASCII/POSIX character ranges
-    "s" ascii/whitespace
-    "S" (i/subtraction m/ANY-ASCII ascii/whitespace)
-    "w" -word
-    "W" (i/subtraction m/ANY-ASCII -word)
-    "d" ascii/digit
-    "D" (i/subtraction m/ANY-ASCII ascii/digit)
+   ;; ASCII/POSIX character ranges
+   "s" ascii/whitespace
+   "S" (i/subtraction m/ANY-ASCII ascii/whitespace)
+   "w" -word
+   "W" (i/subtraction m/ANY-ASCII -word)
+   "d" ascii/digit
+   "D" (i/subtraction m/ANY-ASCII ascii/digit)
 
-    ;; ASCII/POSIX character classes
-    "Lower"  ascii/lower
-    "Upper"  ascii/upper
-    "ASCII"  ascii/any
-    "Alpha"  ascii/alpha
-    "Digit"  ascii/digit
-    "Alnum"  -alnum
-    "Punct"  ascii/punct
-    "Graph"  ascii/graph
-    "Print"  ascii/print
-    "Blank"  ascii/blank
-    "Cntrl"  ascii/control
-    "XDigit" -xdigit
-    "Space"  ascii/space}))
+   ;; ASCII/POSIX character classes
+   "Lower"  ascii/lower
+   "Upper"  ascii/upper
+   "ASCII"  ascii/any
+   "Alpha"  ascii/alpha
+   "Digit"  ascii/digit
+   "Alnum"  -alnum
+   "Punct"  ascii/punct
+   "Graph"  ascii/graph
+   "Print"  ascii/print
+   "Blank"  ascii/blank
+   "Cntrl"  ascii/control
+   "XDigit" -xdigit
+   "Space"  ascii/space})
 
 (defn invert [& sets]
   (apply i/subtraction m/ANY-UTF8 sets))
@@ -72,7 +72,7 @@
 
 (defn parse-character-class
   "Accepts a structure of the form
-
+  o
   [:character-class
    [(:positive-character-class | :negative-character-class) & clauses]
    [:character-class-arithmetic & clauses]]
@@ -126,6 +126,11 @@
     :simple-repetition     identity
     :possessive-repetition c/possessive
     :relucant-repetition   c/reluctant
+
+    :parenthetical (fn paren
+                     ([e] (c/group e))
+                     ([name e]
+                      (c/named-group name e)))
     }))
 
 (defn parse
@@ -134,10 +139,83 @@
   (->> (-parser text-or-resource)
        (transform -transformer)))
 
+;; (ns-unmap *ns* '-render)
+
 ;; Emitting JDK regex patterns
 (defmulti -render
   "Render a regexp tree to a legal Java regex string"
-  #'tag-dx)
+  (juxt #'tag-dx #(get % :behavior :default)))
+
+(defmethod -render [::i/character :default] [pattern]
+  ;; FIXME (arrdem 2017-12-28):
+  ;;   does this need to be more involved? I don't think so....
+  (m/pr-ch pattern))
+
+(defmethod -render [::i/empty :default] [pattern]
+  ;; FIXME (arrdem 2017-12-28):
+  ;;   does this need to be more involved? I don't think so....
+  "[]")
+
+(defmethod -render [::i/class :default] [{:keys [name]}]
+  (format "\\p{%s}" name))
+
+;; Repetition
+
+(defmethod -render [::c/rep-n+ ::c/greedy] [{:keys [pattern count]}]
+  (let [suffix ({0 "*" 1 "+"} count (format "{%d,}" count))]
+    (str (-render pattern) suffix)))
+
+(defmethod -render [:default ::c/possessive] [r]
+  (str (-render (assoc r :behavior ::c/greedy)) "+"))
+
+(defmethod -render [:default ::c/reluctant] [r]
+  (str (-render (assoc r :behavior ::c/greedy)) "?"))
+
+(def ^:dynamic *emitting-set* false)
+
+(defn ^:private maybe-set [^String e]
+  (if *emitting-set* e
+      (format "[%s]" e)))
+
+(defmacro charset [expr]
+  `(maybe-set
+    (binding [*emitting-set* true]
+      ~expr)))
+
+(defmethod -render [::i/range :default] [{:keys [upper lower]}]
+  (charset (format "%s-%s" (-render lower) (-render upper))))
+
+(defmethod -render [::i/union :default] [{:keys [terms]}]
+  (charset (apply str (mapv -render terms))))
+
+(defmethod -render [::i/intersection :default] [{:keys [terms]}]
+  (charset (string/join "&&" (binding [*emitting-set* false]
+                               (mapv (comp maybe-set -render) terms)))))
+
+(defmethod -render [::i/subtraction :default] [{:keys [minuend subtrahends]}]
+  (if-not *emitting-set*
+    (binding [*emitting-set* true]
+      (format "[%s%s]"
+              (-render minuend)
+              (->> subtrahends
+                   (map #(binding [*emitting-set* false]
+                           (-render %)))(string/join "&&" ))))))
+
+;; Grouping
+
+(defmethod -render [::c/group :default] [{:keys [pattern]}]
+  (format "(%s)" (-render pattern)))
+
+(defmethod -render [::c/named-group :default] [{:keys [name pattern]}]
+  (format "(P<%s>%s)" name (-render pattern)))
+
+;; Emitting combinators
+
+(defmethod -render [::c/cat :default] [{:keys [pattern1 pattern2]}]
+  (str (-render pattern1) (-render pattern2)))
+
+(defmethod -render [::c/alt :default] [{:keys [pattern1 pattern2]}]
+  (str (-render pattern1) "|" (-render pattern2)))
 
 (defn emit [pattern]
   "Renders a regex AST to a JDK regex string."
