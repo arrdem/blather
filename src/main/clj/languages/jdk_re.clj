@@ -61,7 +61,9 @@
    "Blank"  ascii/blank
    "Cntrl"  ascii/control
    "XDigit" -xdigit
-   "Space"  ascii/space})
+   "Space"  ascii/space
+   "$"      ::i/eof
+   "^"      ::i/sof})
 
 (defn invert [& sets]
   (apply i/subtraction m/ANY-UTF8 sets))
@@ -108,9 +110,10 @@
 
     ;;----------------------------------------
     ;; Decode characters from their representations
-    :hex-codepoint    (fn [s] (Long/parseLong s 16))
-    :octal-codepoint  (fn [s] (Long/parseLong s 8))
-    :simple-character first
+    :hex-codepoint     (fn [s] (Long/parseLong s 16))
+    :octal-codepoint   (fn [s] (Long/parseLong s 8))
+    :simple-character  first
+    :special-character -named-character-classes
 
     :positive-named-character-class parse-named-character-class
     :negative-named-character-class (fn [name]

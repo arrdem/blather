@@ -6,24 +6,26 @@ special-character = #"[\[\]\(\)\{\}\.*+?]"
 
 octal-codepoint = <"0"> #"[0-3]?[0-7]?[0-7]"
 
-hex-codepoint = <"x"> ( #"[a-fA-F0-9]{2,4}" | <"{"> #"[a-fA-F0-9]+" <"}"> )
+hex-codepoint = <"x"> ( #"[a-fA-F0-9]{2,4}" / <"{"> #"[a-fA-F0-9]+" <"}"> )
 
-codepoint = octal-codepoint | hex-codepoint
+codepoint = octal-codepoint / hex-codepoint
 
 control-character = <"c"> simple-character
 
 named-character = #"[tnrfae]"
 (* tab, newline, return, form-feed, bell (alert), escape *)
 
-negative-named-character-class = <"P{"> #"[^\}]+" <"}"> | #"[WSD]"
+negative-named-character-class = <"P{"> #"[^\}]+" <"}"> / #"[WSD]"
 
-positive-named-character-class = <"p{"> #"[^\}]+" <"}"> | #"[wsd]"
+positive-named-character-class = <"p{"> #"[^\}]+" <"}"> / #"[wsd]"
 
-named-character-class = positive-named-character-class | negative-named-character-class
+named-character-class = positive-named-character-class / negative-named-character-class
 
-escaped-character = <"\\"> ( codepoint | control-character | named-character | named-character-class | special-character)
+escaped-character = <"\\"> ( codepoint / control-character / named-character / named-character-class / special-character)
 
-character = escaped-character | simple-character
+special-character = #"[\^\$]"
+
+character = escaped-character / special-character / simple-character
 
 character-range = character <"-"> character
 

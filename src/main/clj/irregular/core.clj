@@ -20,6 +20,9 @@
         (string? tagged-or-raw)
         ::string
 
+        (keyword? tagged-or-raw)
+        tagged-or-raw
+
         :default
         (type tagged-or-raw)))
 
@@ -192,6 +195,20 @@
   {:pre [(every? symbol? args)]}
   `(do (defmethod ~method ~constant ~args ~@fn-body)
        (defmethod ~method ~(reversev constant) ~(reversev args) (~method ~@args))))
+
+;; Special terminals
+
+(def EOF
+  "End Of File (input)"
+  ::eof)
+
+(defmethod multibyte? ::eof [_] false)
+
+(def SOF
+  "Start Of File (input)"
+  ::sof)
+
+(defmethod multibyte? ::sof [_] false)
 
 ;; Load up the fragmented implementation because multimethods are imperative.
 ;;--------------------------------------------------------------------------------------------------
