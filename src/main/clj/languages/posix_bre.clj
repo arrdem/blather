@@ -116,10 +116,34 @@
 
 (defmethod -render ::i/subtraction [{:keys [minuend subtrahends]}]
   (if (= minuend ANY-ASCII)
-    (m/charset (str "^" (apply str (map -render subtrahends))))))
+    (m/charset (str "[^" (apply str (map -render subtrahends)) "]"))))
 
-#_(defmethod -render ::i/subtraction [{:keys [terms]}]
-    (format "(%s)" (-render pattern)))
+(defmethod -render ::c/rep-n [{:keys [pattern count behavior]}]
+  {:pre [(= behavior ::c/greedy)]}
+  (format "%s\\{%s\\}" (-render pattern) count))
+
+(defmethod -render ::c/rep-n+ [{:keys [pattern count behavior]}]
+  {:pre [(= behavior ::c/greedy)]}
+  (if (= count 0)
+    (format "%s*" (-render pattern))
+    (format "%s\\{%s,\\}" (-render pattern) count)))
+
+(defmethod -render ::c/rep-nm [{:keys [pattern min max behavior]}]
+  {:pre [(= behavior ::c/greedy)]}
+  (format "%s\\{%s,%s\\}" (-render pattern) min max))
+
+(defmethod -render ::i/sof [_] "^")
+
+(defmethod -render ::i/eof [_] "$")
+
+(defmethod -render ::i/equivalence [{:keys [name]}]
+  (format "[=%s=]" name))
+
+(defmethod -render ::i/collation [{:keys [name]}]
+  (format "[.%s.]" name))
+
+(defmethod -render ::c/group [{:keys [pattern]}]
+  (format "\\(%s\\)" (-render pattern)))
 
 (defn emit [pattern]
   "Renders a regex AST to a JDK regex string."
