@@ -2,6 +2,7 @@
   (:require [clojure.java.io :refer [resource]]
             [irregular.combinators :as c]
             [languages.common :as m]
+            [blather.grammars :as g]
             [instaparse.core :refer [parser transform]]))
 
 (def -parser
@@ -17,22 +18,35 @@
   (merge
    m/recursive-alt
    m/recursive-concat
-   {
-    ;; Intermediary states with no value and no source representation
-    :repeat   identity
-    :terminal identity
-    :element  identity
+   {:terminal identity
+    :char-val first
+    :element identity
+    :alias nil
 
-    ;; Rewrite repetition as a prefix operation
     :repetition (fn
-                  ([subtree] subtree)
-                  ([subtree quantifier] [quantifier subtree]))
+                  ([x] x)
+                  ([x repeat]
+                   :FIXME))
 
-    :one-or-more  (fn [] :one-or-more)
-    :zero-or-more (fn [] :zero-or-more)
-    :zero-or-one  (fn [] :zero-or-one)
-    })
-  )
+    :symbol g/rule
+    :rulename (fn ([symbol] symbol)
+                  ([tag symbol] symbol))
+
+    :rule (fn [name elements]
+            [name elements])
+
+    :grammar (fn [& rules-pragmas]
+               (let [{:keys [rule pragma]}
+                     (group-by (fn [e]
+                                 (or (when (and (vector? e)
+                                                (keyword? (first e)))
+                                       (first e))
+                                     :rule))
+                               rules-pragmas)]
+                 {:type ::grammar
+                  :pragmas pragma
+                  :rules (into {} (map (fn [[rule-name rule]] [(:name rule-name) rule])
+                                       rule))}))}))
 
 (defn parse
   "Consumes a resource, parsing it as Lark structured text, and generating an analyzed FSM"

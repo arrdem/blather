@@ -86,11 +86,12 @@
 
    ;; Parse the rule & additions list into a grammar structure.
    :rulelist (fn [& rules-and-additions]
-               (reduce (fn [grammar [tag {:keys [name]} production]]
-                         (case tag
-                           (:rule)     (assoc grammar name production)
-                           (:addition) (update grammar name c/alt production)))
-                       {} rules-and-additions))})
+               {:type ::grammar
+                :rules (reduce (fn [grammar [tag {:keys [name]} production]]
+                                 (case tag
+                                   (:rule)     (assoc grammar name production)
+                                   (:addition) (update grammar name c/alt production)))
+                               {} rules-and-additions)})})
 
 (defn parse
   "Consumes a resource, parsing it as a RFC5234 structured text, and generating an analyzed FSM"

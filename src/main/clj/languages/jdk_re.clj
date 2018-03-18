@@ -137,7 +137,7 @@
     }))
 
 (defn parse
-  "Consumes a resource, parsing it as a RFC5234 structured text, and generating an analyzed FSM"
+  "Consumes a resource, parsing it as JDK pattern and generating an analyzed FSM"
   [text-or-resource]
   (->> (-parser text-or-resource)
        (transform -transformer)))

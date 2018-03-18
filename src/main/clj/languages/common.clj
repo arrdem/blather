@@ -1,13 +1,17 @@
 (ns languages.common
   "Common transformer mappings & character sets."
-  (:require [irregular.core :as i]
+  (:require [clojure.tools.logging :as log]
+            [irregular.core :as i]
             [irregular.combinators :as c]
             [languages.ascii :as ascii]))
 
 (defn d1x2 [f]
   (fn
     ([x] x)
-    ([x y] (f x y))))
+    ([x y] (f x y))
+    ([x y z & more]
+     (log/error x y z more)
+     (throw (IllegalArgumentException.)))))
 
 (def recursive-concat
   "A transformer mapping for rewriting
